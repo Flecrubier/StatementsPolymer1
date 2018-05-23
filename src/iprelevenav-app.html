@@ -20,13 +20,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="my-icons.html">
 
 <dom-module id="iprelevenav-app">
   <template>
     <style>
       :host {
-        --app-primary-color: #4285f4;
+        --app-primary-color: #149325;
         --app-secondary-color: black;
 
         display: block;
@@ -58,7 +61,74 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <app-location route="{{route}}" url-space-regex="^[[rootPath]]"></app-location>
+
+    <!--Creation dialog-->
+
+    <paper-alert-dialog
+      id="dialogAuth0"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Email mal construit. Il doit être de la forme blabla@blabla.bla
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth1"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Aucune correspondance utilisateur/mot de passe. Le mot de passe est incorrect
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth2"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Utilisateur inexistant, veuillez changer l'adresse mail ou l'inscrire
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth3"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Trop de tentatives de connexions. Veuillez réessayer plus tard
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth4"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Erreur d'authentification
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogRegister0"
+      title="Mot de passe trop court/faible"
+      confirm-button="OK">
+      Votre mot de passe doit être long d'au moins 6 caractères
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogRegister1"
+      title="Email déjà utilisé"
+      confirm-button="OK">
+      Cet email est déjà utilisé pour un autre compte, veuillez changer d'adresse mail
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogDenied"
+      title="Accès non autorisé"
+      confirm-button="OK">
+      Vous avez été bloqué par un administrateur, vous n'avez pas accès aux données
+    </paper-alert-dialog>
+
+    <!--Fin creation dialog-->
+
+
+
+    <app-location
+      route="{{route}}"
+      url-space-regex="^[[rootPath]]">
+    </app-location>
+
     <app-route
         route="{{route}}"
         pattern="[[rootPath]]:page"
@@ -103,6 +173,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
+
+    <firebase-app
+      name="iPreleveFirebase"
+      api-key="AIzaSyARAy4a8CcjZXD2d4G34xUegbhhpuoJx-U"
+      auth-domain="interfaceprelevesimple.firebaseapp.com"
+      database-url="https://interfaceprelevesimple.firebaseio.com"
+      storage-bucket="gs://interfaceprelevesimple.appspot.com">
+    </firebase-app>
+
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google"
+      user="{{user}}"
+      on-error="_showError">
+    </firebase-auth>
   </template>
 
   <script>
@@ -121,6 +207,57 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         '_routePageChanged(routeData.page)',
       ],
 
+      ready: function(){
+        this.addEventListener("authLoginRequest", function(e){
+          this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
+          .then(function(ee){
+
+          })
+          .catch(function(ee){
+
+          })
+        });
+        this.addEventListener("authLogoutRequest", function(e){
+          this.$.auth.signOut();
+        });
+        this.addEventListener("authRegisterRequest", function(e){
+          this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
+            .then(this.pushDatasForUser.bind(this))
+            .catch(function(error){
+              console.log(error);
+            });
+        });
+        this.addEventListener("error", function(e){
+          console.log(e);
+          switch(e.detail.code){
+            case "auth/invalid-email":
+              this.$.dialogAuth0.open();
+              break;
+            case "auth/wrong-password":
+              this.$.dialogAuth1.open();
+              break;
+            case "auth/user-not-found":
+              this.$.dialogAuth2.open();
+              break;
+            case "auth/too-many-requests":
+              this.$.dialogAuth3.open();
+              break;
+            case "auth/weak-password":
+              this.$.dialogRegister0.open();
+              break;
+            case "auth/email-already-in-use":
+              this.$.dialogRegister1.open();
+              break;
+            case "PERMISSION_DENIED":
+              this.$.dialogDenied.open();
+              break;
+            default:
+              this.$.dialogAuth4.setAttribute("Title", e.detail.code);
+              this.$.dialogAuth4.open();
+          }
+        });
+      },
+
       _routePageChanged: function(page) {
         this.page = page || 'viewauth';
 
@@ -138,6 +275,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _showPage404: function() {
         this.page = 'view404';
       },
+
+      pushDatasForUser: function(user){
+        firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
+        firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
+      },
+
     });
   </script>
 </dom-module>

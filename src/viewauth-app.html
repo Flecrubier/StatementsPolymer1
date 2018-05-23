@@ -9,29 +9,124 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/polymerfire.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewauth-app">
   <template>
+
+    <!--Creation dialog-->
+
+      <paper-alert-dialog
+        id="dialogLabel0"
+        title="Erreur de saisie"
+        confirm-button="OK">
+        Il manque un email et/ou un mot de passe
+      </paper-alert-dialog>
+
+    <!--Fin creation dialog-->
+
     <style include="shared-styles">
       :host {
         display: block;
 
         padding: 10px;
       }
+
+      .centerAuth{
+        position: fixed;
+        left:50%;
+        top:50%;
+        transform: translate(-50%, -50%);
+      }
     </style>
 
-    <div class="card">
-      <div class="circle">1</div>
-      <h1>View auth</h1>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      user="{{user}}"
+      provider="google">
+    </firebase-auth>
+
+    <div class ="centerAuth">
+      <div class="card">
+        <h3>Connexion</h3>
+        <paper-input style="width:20em" id="labelMail" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
+        <paper-input style="width:20em" id="labelMdp" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
+
+        <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
+        <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
+        <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+      </div>
+
+      <div class="card" hidden$=[[user]]>
+        <h3>Inscription</h3>
+        <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100"></paper-input>
+        <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" type="password" maxlength="100"></paper-input>
+
+        <paper-button id="registerButton" raised on-tap="_register">Inscription</paper-button>
+      </div>
+
     </div>
   </template>
 
   <script>
     Polymer({
       is: 'viewauth-app',
+
+      _login: function(){
+        if(!this.mail || !this.mdp){
+          this.$.dialogLabel0.open();
+        }else{
+          var authLoginEvent = new CustomEvent(
+            "authLoginRequest",
+            {
+              detail:{
+                mail: this.mail,
+                mdp: this.mdp
+              },
+              bubbles: true,
+              composed: true
+            }
+          );
+          this.dispatchEvent(authLoginEvent);
+        }
+      },
+
+      _logout: function(){
+        var authLogoutEvent = new CustomEvent(
+          "authLogoutRequest",
+          {
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authLogoutEvent);
+        this.mail = null;
+        this.mdp = null;
+        this.registermail = null;
+        this.registermdp = null;
+      },
+
+      _register: function(){
+        var authRegisterEvent = new CustomEvent(
+          "authRegisterRequest",
+          {
+            detail:{
+              mail: this.registermail,
+              mdp: this.registermdp
+            },
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authRegisterEvent);
+      },
     });
   </script>
 </dom-module>
