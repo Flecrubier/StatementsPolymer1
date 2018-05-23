@@ -1,11 +1,11 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/my-app.html",
+  "shell": "src/iprelevenav-app.html",
   "fragments": [
-    "src/my-view1.html",
-    "src/my-view2.html",
-    "src/my-view3.html",
-    "src/my-view404.html"
+    "src/viewauth-app.html",
+    "src/viewReleves-app.html",
+    "src/viewgmap-app.html",
+    "src/view404-app.html"
   ],
   "sources": [
     "src/**/*",
