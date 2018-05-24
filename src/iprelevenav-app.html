@@ -164,11 +164,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-            <viewauth-app name="viewauth"></viewauth-app>
-            <viewreleves-app name="viewreleves"></viewreleves-app>
-            <viewgmap-app name="viewgmap"></viewgmap-app>
+            <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
+            <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
+            <viewgmap-app name="viewgmap" user="[[user]]"></viewgmap-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
-            <viewadmin-app name="viewadmin"></viewadmin-app>
+            <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
             <view404-app name="view404"></view404-app>
         </iron-pages>
       </app-header-layout>

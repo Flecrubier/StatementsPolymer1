@@ -9,6 +9,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../bower_components/file-input/file-input.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewreleves-app">
@@ -21,17 +39,541 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <div class="card">
-      <div class="circle">2</div>
-      <h1>View releve</h1>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.</p>
-      <p>Id nam odio natum malorum, tibique copiosae expetenda mel ea.Detracto suavitate repudiandae no eum. Id adhuc minim soluta nam.Id nam odio natum malorum, tibique copiosae expetenda mel ea.</p>
-    </div>
+    <!--Creation dialog-->
+
+      <paper-alert-dialog
+        id="dialogUpload0"
+        title="Erreur d'upload"
+        confirm-button="OK">
+        Vous ne pouvez choisir que jusqu'a 3 images
+      </paper-alert-dialog>
+
+      <paper-alert-dialog
+        id="dialogDelete0"
+        title="Suppression relevé"
+        confirm-button="Oui"
+        dismiss-button="Non"
+        on-confirm="confirmDelete">
+        Voulez vous vraiment supprimmer ce relevé ?
+      </paper-alert-dialog>
+
+      <paper-toast
+        id="toastSuccess"
+        text="Relevé ajouté avec succès">
+      </paper-toast>
+
+      <paper-toast
+        id="toastFail"
+        text="Il faut sélectionner une espèce et remplir le code postal à 5 chiffres">
+      </paper-toast>
+
+      <paper-toast
+        id="toastDelete"
+        text="Relevé supprimmé">
+      </paper-toast>
+
+      <firebase-auth
+        app-name="iPreleveFirebase"
+        id="auth"
+        provider="google">
+      </firebase-auth>
+
+    <!--Fin creation dialog-->
+
+        <template is="dom-if" if="[[user]]">
+          <geo-location watch-pos latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
+
+          <h4>S'il n'y a pas de valeur pour la latitude/longitude veuillez attendre ou remplir le code postal</h4>
+          <div>Latitude : [[latitude]]</div>
+          <div>Longitude : [[longitude]]</div>
+
+          <br/>
+          <h5>Liste des relevés actuels :</h5>
+          <paper-collapse-group>
+            <template is="dom-repeat" items="[[datas]]">
+              <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
+                <div role="listbox">
+
+                  <paper-icon-item>
+                    <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Espèce</div>
+                      <div secondary>[[item.espece]]</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Longitude</div>
+                      <div secondary>[[showData(item.longitude)]]</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Latitude</div>
+                      <div secondary>[[showData(item.latitude)]]</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Code postal</div>
+                      <div secondary>[[showData(item.codepostal)]]</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Image</div>
+                      <div secondary><img src="[[item.downloadURL1]]"></img></div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Image</div>
+                      <div secondary><img src="[[item.downloadURL2]]"></img></div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                  <paper-icon-item>
+                    <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>Image</div>
+                      <div secondary><img src="[[item.downloadURL3]]"></img></div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+
+                  <paper-icon-item>
+                    <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
+                      <paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+                  </paper-icon-item>
+
+                </div>
+              </paper-collapse-item>
+            </template>
+          </paper-collapse-group>
+
+          <br/>
+          <h5>Ajouter un relevé : (Sélectionner dans la liste si-dessous, mettre plus de 3 lettres pour préciser recherche)</h5>
+          <paper-input style="width:20em" label="Rechercher espèce" value="{{specie}}" allowed-pattern="[a-zA-Z]" maxlength="30"></paper-input>
+
+          <div>
+            <paper-dropdown-menu>
+              <paper-listbox class="dropdown-content" id="liste">
+                <template id="matchSpecies" is="dom-repeat" items="[[allSpecies]]" filter="doMatch">
+                  <paper-item>[[item]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <span>[[numMatch]] espèce(s) correspond(ent)</span>
+          </div>
+
+          <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" allowed-pattern="[0-9]" disabled></paper-input>
+<!--
+          <paper-input style="width:20em" label="Images (3 max)" type="file" id="file-uploader" accept="image/*" multiple></paper-input>
+-->
+          <div>
+            <paper-button raised>
+            <file-input id="file-uploader" accept="image/*" maxFiles="3"></file-input>
+            Choisir images
+            </paper-button>
+            <span>[[filesInput.length]] image(s) sélectionnée(s)</span>
+          </div>
+
+          <br/>
+
+          <paper-button id="btnAddData" raised on-tap="addData">Ajouter un relevé</paper-button>
+
+        </template>
+
+        <template is="dom-if" if="[[!user]]">
+          <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+        </template>
   </template>
 
   <script>
     Polymer({
       is: 'viewreleves-app',
+
+      properties: {
+        datas:{
+          type:Array,
+          value:[]
+        },
+        eventBtn:{
+          type:Object
+        },
+        doAdded:{
+          type:Boolean,
+          value:true
+        },
+        latitude:{
+          type:Number,
+        },
+        longitude:{
+          type:Number,
+        },
+        CPInputReady:{
+          type:Boolean,
+          value:false
+        },
+        allSpecies:{
+          type:Array,
+          value:[]
+        },
+        specie:{
+          type:String,
+          observer:"specieChanged"
+        },
+        numMatch:{
+          type:Number,
+          value:0
+        },
+        downloadURLs:{
+          type:Array,
+          value:[]
+        },
+        filesInput:{
+          type:Array,
+          value:[],
+        },
+        userId:{
+          type:String,
+          value:""
+        },
+        selectedSpecie:{
+          type:String
+        },
+      },
+
+      observers: [
+        "geoValueChanged(latitude, longitude, CPInputReady)",
+      ],
+
+      created: function(){
+        //this.numMatch=0
+        //this.datas=[];
+        //this.allSpecies=[];
+        //this.downloadURLs=[];
+        //this.doAdded = true;
+        //this.CPInputReady = false;
+        //this.userId="";
+      },
+
+      ready: function(){
+        this.createMutationObserver();
+
+          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+            if(this.doAdded){
+              this.push("allSpecies", snapshot.key);
+            }
+          });
+
+          this.$.auth.addEventListener("signed-in-changed",function(e){
+            if(this.user){
+              //Connexion
+              this.createOns();
+            }else{
+              //Déconnexion
+              this.doOffs();
+              this.selectedSpecie = null;
+              this.specie = null;
+              this.codepostal = null;
+              this.shadowRoot.querySelector("#liste").selectIndex(0);
+            }
+          }.bind(this));
+
+          this.addEventListener("iron-select",function(e){
+            this.selectedSpecie = e.detail.item.innerText;
+          }.bind(this));
+
+      },
+
+      createOns: function(){
+        this.userId = this.user.uid;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .on("child_added",snapshot =>{
+                        if(this.doAdded){
+                          var datasUnReleve = snapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            longitude : datasUnReleve.longitude,
+                            latitude : datasUnReleve.latitude,
+                            codepostal : datasUnReleve.codepostal,
+                            downloadURL1 : datasUnReleve.downloadURL1,
+                            downloadURL2 : datasUnReleve.downloadURL2,
+                            downloadURL3 : datasUnReleve.downloadURL3
+                          };
+                          this.push("datas", unReleve);
+                        }
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .on("child_removed", oldChildSnapshot=>{
+                        if(this.doAdded){
+                          var datasUnReleve = oldChildSnapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            longitude : datasUnReleve.longitude,
+                            latitude : datasUnReleve.latitude,
+                            codepostal : datasUnReleve.codepostal,
+                            downloadURL1 : datasUnReleve.downloadURL1,
+                            downloadURL2 : datasUnReleve.downloadURL2,
+                            downloadURL3 : datasUnReleve.downloadURL3
+                          };
+                          var index = this.checkReleve(unReleve);
+                          if(index > -1){
+                            this.splice("datas", index, 1);
+                          }
+                        }
+          });
+      },
+
+      doOffs: function(){
+        this.splice("datas", 0, this.datas.length);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        this.userId = "";
+      },
+
+      createMutationObserver: function(){
+        var config = {childList : true, subtree : true};
+
+        var observer = new MutationObserver(function(mutation){
+          for(var node of mutation[0].addedNodes){
+
+            if(node.id != undefined && node.id != null){
+                if(node.id === "CPInput"){
+                  this.CPInputReady = true;
+                  this.geoValueChanged(this.latitude, this.longitude);
+                }
+
+                console.log("id : ", node.id);
+                if(node.id === "file-uploader"){
+                  console.log("file uploader set");
+                  this.filesInput = this.shadowRoot.querySelector("#file-uploader").files;
+                  this.notifyPath("filesInput.length");
+                  this.shadowRoot.querySelector("#file-uploader").addEventListener("change", function(event){
+                    this.notifyPath("filesInput.length");
+                    console.log("ba alors ?");
+                    if(this.filesInput.length > 3){
+                      this.$.dialogUpload0.open();
+                      this.shadowRoot.querySelector("#file-uploader").reset();
+                      this.filesInput = [];
+                      this.notifyPath("filesInput.length");
+                    }
+                  }.bind(this));
+                }
+            }
+          }
+        }.bind(this));
+
+        observer.observe(this.shadowRoot, config);
+      },
+
+      geoValueChanged: function(latitude, longitude){
+        if(this.CPInputReady){
+          if(latitude == null && longitude == null){
+            this.shadowRoot.querySelector("#CPInput").removeAttribute("disabled");
+          }else{
+            this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
+          }
+        }
+      },
+
+      doMatch: function(item){
+        if(this.specie){
+          if(this.specie.length > 3){
+            var match = item.toLowerCase().includes(this.specie.toLowerCase());
+            if(match){
+              this.numMatch++;
+            }
+            return match;
+          }
+          this.numMatch++;
+          return true;
+        }
+        this.numMatch++;
+        return true;
+      },
+
+      specieChanged: function(){
+        this.numMatch = 0;
+        this.shadowRoot.querySelector("#matchSpecies").render();
+      },
+
+      checkReleve: function(releve){
+        for(var i = 0 ; i < this.datas.length ; i++){
+          if ( (this.datas[i].longitude === releve.longitude) &&
+            (this.datas[i].latitude === releve.latitude) &&
+            (this.datas[i].espece === releve.espece) &&
+            (this.datas[i].codepostal === releve.codepostal) &&
+            (this.datas[i].downloadURL1 === releve.downloadURL1) &&
+            (this.datas[i].downloadURL2 === releve.downloadURL2) &&
+            (this.datas[i].downloadURL3 === releve.downloadURL3) ){
+              return i;
+            }
+        }
+        return -1;
+      },
+
+      isEqual: function(a, b) {
+        return a === b;
+      },
+
+      addData: function(){
+        this.deactivateAddDataButton();
+
+        var isCPInputDisabled;
+        if(!(this.shadowRoot.querySelector("#CPInput").getAttribute("disabled"))){
+          isCPInputDisabled = false;
+        }else{
+          isCPInputDisabled = true;
+        }
+
+        if( (this.selectedSpecie && !isCPInputDisabled && this.codepostal && this.codepostal.length == 5) || (this.selectedSpecie && isCPInputDisabled)){
+          this.filesInput = this.shadowRoot.querySelector("#file-uploader").files;
+          if(this.filesInput.length > 3){
+            this.$.dialogUpload0.open();
+            this.shadowRoot.querySelector("#file-uploader").reset(); //Clean FileList
+          }else{
+
+            this.downloadURLs = [];
+            for(var i = 0 ; i < this.filesInput.length ; i++){
+              var uniqueID = Date.now().toString() + "-" + this.filesInput[i].name;
+
+              firebase.app("iPreleveFirebase").storage().ref("/relevesImages/"+this.user.uid+"/"+uniqueID).put(this.shadowRoot.querySelector("#file-uploader").files[i]).then(snapshot=>{
+                this.push("downloadURLs", snapshot.downloadURL);
+                if(this.downloadURLs.length == this.filesInput.length){
+                  if(!this.downloadURLs[0]){
+                    this.downloadURLs[0] = false ;
+                  }
+                  if(!this.downloadURLs[1]){
+                    this.downloadURLs[1] = false ;
+                  }
+                  if(!this.downloadURLs[2]){
+                    this.downloadURLs[2] = false ;
+                  }
+
+                  firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set({
+                    espece:this.selectedSpecie,
+                    codepostal:isCPInputDisabled ? false : this.codepostal,
+                    latitude:isCPInputDisabled ? this.latitude : false,
+                    longitude:isCPInputDisabled ? this.longitude : false,
+                    downloadURL1:this.downloadURLs[0],
+                    downloadURL2:this.downloadURLs[1],
+                    downloadURL3:this.downloadURLs[2]
+                  }).then(function(){
+                    this.$.toastSuccess.open();
+                    this.reactivateAddDataButton();
+
+                  }.bind(this));
+                }
+              });
+            }
+
+            if(this.filesInput.length == 0){
+              firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set({
+                espece:this.selectedSpecie,
+                codepostal:isCPInputDisabled ? false : this.codepostal,
+                latitude:isCPInputDisabled ? this.latitude : false,
+                longitude:isCPInputDisabled ? this.longitude : false,
+                downloadURL1:false,
+                downloadURL2:false,
+                downloadURL3:false
+              }).then(function(){
+                this.$.toastSuccess.open();
+                this.reactivateAddDataButton();
+              }.bind(this));
+
+
+            }
+          }
+
+        }else{
+          this.$.toastFail.open();
+          this.reactivateAddDataButton();
+        }
+      },
+
+      deactivateAddDataButton: function(){
+        this.shadowRoot.querySelector("#btnAddData").setAttribute("disabled",true);
+        this.shadowRoot.querySelector("#btnAddData").style.opacity = 0.2;
+      },
+
+      reactivateAddDataButton: function(){
+        this.shadowRoot.querySelector("#btnAddData").removeAttribute("disabled");
+        this.shadowRoot.querySelector("#btnAddData").style.opacity = 1.0;
+      },
+
+      getIndex: function(index){
+        return index+1;
+      },
+
+      deleteReleve: function(event){
+        this.eventBtn=event;
+        this.$.dialogDelete0.open();
+      },
+
+      confirmDelete: function(){
+        var chaineId = this.eventBtn.path[0].id;
+        var idReleve = chaineId.substring("deleteReleveBtn".length);
+        var idReleveInt = parseInt(idReleve);
+        var wantedKey = "n"+idReleveInt;
+        var wantedDownloadUrl1 = this.datas[idReleveInt].downloadURL1;
+        var wantedDownloadUrl2 = this.datas[idReleveInt].downloadURL2;
+        var wantedDownloadUrl3 = this.datas[idReleveInt].downloadURL3;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/"+wantedKey).remove(function(e){
+          this.$.toastDelete.open();
+        }.bind(this));
+
+        this.refreshDBKeyNames(idReleveInt);
+
+        if(wantedDownloadUrl1){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl1).delete();
+        }
+        if(wantedDownloadUrl2){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl2).delete();
+        }
+        if(wantedDownloadUrl3){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl3).delete();
+        }
+
+      },
+
+      refreshDBKeyNames: function(idDelete){
+        //--On n'exécute pas la code des on crées dans le ready pour le déplacement des données
+        this.doAdded = false;
+
+        for(var i = idDelete ; i < this.datas.length ; i++){
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
+        }
+
+        this.doAdded = true;
+      },
+
+      showData: function(item){
+        if(item == false){
+          return "Non renseigné";
+        }else{
+          return item;
+        }
+      },
+
     });
   </script>
 </dom-module>
