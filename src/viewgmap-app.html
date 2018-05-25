@@ -9,6 +9,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/google-map/google-map.html">
+<link rel="import" href="../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../bower_components/geo-codec/geo-codec.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewgmap-app">
@@ -21,17 +26,212 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <div class="card">
-      <div class="circle">3</div>
-      <h1>View gmap</h1>
-      <p>Modus commodo minimum eum te, vero utinam assueverit per eu.</p>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.Has at minim mucius aliquam, est id tempor laoreet.Pro saepe pertinax ei, ad pri animal labores suscipiantur.</p>
-    </div>
+    <template is="dom-if" if="[[user]]">
+
+      <geo-codec id="codec" api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"></geo-codec>
+
+      <google-map
+        style="height:90vh"
+        api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
+        id="map"
+        longitude="{{longMap}}"
+        latitude="{{latMap}}"
+        zoom="10"
+        disable-map-type-control
+        disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
+
+        <template is="dom-repeat" items="[[dataG]]" mutable-data id="markers">
+          <google-map-marker
+            longitude="[[getLongitude(item)]]"
+            latitude="[[getLatitude(item)]]">
+            <p><h3>[[item.espece]]</h3></p>
+          </google-map-marker>
+        </template>
+      </google-map>
+
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+    </template>
+
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google">
+    </firebase-auth>
+
   </template>
 
   <script>
     Polymer({
       is: 'viewgmap-app',
+
+      properties: {
+        dataG:{
+          type:Array,
+          value:[]
+        },
+        longMap:{
+          type: Number,
+          value:2.4
+        },
+        latMap:{
+          type: Number,
+          value:46.4762253
+        },
+        doAdded:{
+          type: Boolean,
+          value:true
+        },
+        userId:{
+          type:String
+        },
+        codecReady:{
+          type:Boolean,
+          value:false
+        }
+      },
+
+      observers:[
+        "_dataGChanged(dataG.length)"
+      ],
+
+
+      ready: function(){
+        this.createMutationObserver();
+
+        this.$.auth.addEventListener("signed-in-changed",function(e){
+          if(this.user){
+            //Connexion
+            this.createOns();
+          }else{
+            //Déconnexion
+            this.doOffs();
+          }
+        }.bind(this));
+      },
+
+      createOns: function(){
+        this.userId = this.user.uid;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_added", snapshot =>{
+          if(this.doAdded){
+            var datasUnReleve = snapshot.val();
+            var unReleve ={
+              espece : datasUnReleve.espece,
+              longitude : datasUnReleve.longitude,
+              latitude : datasUnReleve.latitude,
+              codepostal : datasUnReleve.codepostal,
+              downloadURL1 : datasUnReleve.downloadURL1,
+              downloadURL2 : datasUnReleve.downloadURL2,
+              downloadURL3 : datasUnReleve.downloadURL3
+            };
+            this.push("dataG", unReleve);
+            this.notifyPath("dataG");
+          }
+        });
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_removed", oldChildSnapshot =>{
+          if(this.doAdded){
+            var datasUnReleve = oldChildSnapshot.val();
+            var unReleve = {
+              espece : datasUnReleve.espece,
+              longitude : datasUnReleve.longitude,
+              latitude : datasUnReleve.latitude,
+              codepostal : datasUnReleve.codepostal,
+              downloadURL1 : datasUnReleve.downloadURL1,
+              downloadURL2 : datasUnReleve.downloadURL2,
+              downloadURL3 : datasUnReleve.downloadURL3
+            };
+            var index = this.checkReleve(unReleve);
+            if(index > -1){
+                this.splice("dataG", index, 1);
+            }
+          }
+        });
+      },
+
+      doOffs: function(){
+        this.splice("dataG", 0, this.dataG.length);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        this.userId = "";
+      },
+
+      createMutationObserver: function(){
+        var config = {childList : true, subtree : true};
+
+        var observer = new MutationObserver(function(mutation){
+          for(var node of mutation[0].addedNodes){
+            if(node.id != undefined && node.id != null){
+                if(node.id === "codec"){
+                  this.codecReady = true;
+                  this.shadowRoot.querySelector("#markers").render();
+                }
+            }
+          }
+        }.bind(this));
+
+        observer.observe(this.shadowRoot, config);
+      },
+
+      checkReleve: function(releve){
+        for(var i = 0 ; i < this.dataG.length ; i++){
+          if ( (this.dataG[i].longitude === releve.longitude) &&
+            (this.dataG[i].latitude === releve.latitude) &&
+            (this.dataG[i].espece === releve.espece) &&
+            (this.dataG[i].codepostal === releve.codepostal) &&
+            (this.dataG[i].downloadURL1 === releve.downloadURL1) &&
+            (this.dataG[i].downloadURL2 === releve.downloadURL2) &&
+            (this.dataG[i].downloadURL3 === releve.downloadURL3) ){
+              return i;
+            }
+        }
+        return -1;
+      },
+
+      _dataGChanged: function(changeLength){
+        this.recenterMap();
+      },
+
+      recenterMap: function(){
+        if(this.dataG.length > 0){
+          var i = 0;
+          var moyLong = this.dataG[0].longitude;
+          var moyLat = this.dataG[0].latitude;
+          for(i = 1 ; i < this.dataG.length ; i++){
+            moyLong += this.dataG[i].longitude;
+            moyLat += this.dataG[i].latitude;
+          }
+          moyLong /= this.dataG.length;
+          moyLat /= this.dataG.length;
+          this.longMap = moyLong;
+          this.latMap = moyLat;
+        }
+      },
+
+      getLatitude: function(item){
+        if(item.latitude){
+          return parseFloat(item.latitude);
+        }else{
+          var geocodec = this.shadowRoot.getElementById("codec");
+          var resultat = geocodec.geocode(item.codepostal + ",FR", function(adress, lat, lng, place){
+            item.longitude = lng;
+            item.latitude = lat;
+            this.shadowRoot.querySelector("#markers").render();
+            this.recenterMap();
+          }.bind(this));
+        }
+      },
+
+      getLongitude: function(item){
+        if(item.longitude){
+          return parseFloat(item.longitude);
+        }
+      },
+
+
+
     });
   </script>
 </dom-module>

@@ -356,14 +356,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   this.geoValueChanged(this.latitude, this.longitude);
                 }
 
-                console.log("id : ", node.id);
                 if(node.id === "file-uploader"){
-                  console.log("file uploader set");
                   this.filesInput = this.shadowRoot.querySelector("#file-uploader").files;
                   this.notifyPath("filesInput.length");
                   this.shadowRoot.querySelector("#file-uploader").addEventListener("change", function(event){
                     this.notifyPath("filesInput.length");
-                    console.log("ba alors ?");
                     if(this.filesInput.length > 3){
                       this.$.dialogUpload0.open();
                       this.shadowRoot.querySelector("#file-uploader").reset();
