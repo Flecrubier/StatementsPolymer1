@@ -9,6 +9,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../bower_components/google-map/google-map.html">
+<link rel="import" href="../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../bower_components/geo-codec/geo-codec.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewadmin-app">
@@ -21,17 +38,618 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <div class="card">
-      <div class="circle">1</div>
-      <h1>View admin</h1>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
-    </div>
+    <!--Création dialog-->
+
+    <paper-alert-dialog
+      id="dialogDelete0"
+      title="Suppression relevé"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmDeleteReleve">
+      Voulez vous vraiment supprimmer ce relevé ?
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogBlock0"
+      title="Bloquer utilisateur"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmBlockUser">
+      Voulez vous vraiment bloquer cet utilisateur ?
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogBlock1"
+      title="Débloquer utilisateur"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmUnblockUser">
+      Voulez vous vraiment débloquer cet utilisateur ?
+    </paper-alert-dialog>
+
+    <paper-toast
+      id="toastClean"
+      text="Base des espèces nettoyée">
+    </paper-toast>
+
+    <paper-toast
+      id="toastFill"
+      text="Base des espèces chargée">
+    </paper-toast>
+
+    <paper-toast
+      id="toastDelete"
+      text="Relevé supprimmé">
+    </paper-toast>
+
+
+    <template is="dom-if" if="[[user]]">
+      <div hidden$=[[!isAdmin]]>
+
+        <h3>Interface administration</h3>
+
+        <!-- Carte de tous les relevés -->
+
+        <h5>Gestion Base de données des espèces</h5>
+
+        <paper-button raised on-tap="cleanDB">Nettoyer base de données des espèces</paper-button>
+        <paper-button raised on-tap="fillDB">Charger base de données des espèces</paper-button>
+
+
+        <h5>Carte des relevés</h5>
+
+        <geo-codec id="codec" api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"></geo-codec>
+
+        <google-map
+          style="height:70vh"
+          api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
+          id="mapAdmin"
+          longitude="[[longMap]]"
+          latitude="[[latMap]]"
+          zoom="10"
+          disable-map-type-control
+          disable-street-view-control>
+
+          <template is="dom-repeat" items="[[allReleves]]" mutable-data id="markers">
+            <google-map-marker
+            longitude="[[getLongitude(item)]]"
+            latitude="[[getLatitude(item)]]">
+            <p><h4>[[item.espece]]</h4></p>
+            </google-map-marker>
+          </template>
+
+        </google-map>
+
+
+        <!-- Liste des utilisateurs / relevés-->
+
+        <h5>Liste des utilisateurs</h5>
+
+        <template is="dom-repeat" items="[[datas]]" as="aUser">
+
+              <div class="card">
+                <div role="listbox">
+
+                  <paper-icon-item>
+                    <iron-icon icon="social:person" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>[[aUser.mail]]</div>
+                      <div secondary>[[aUser.releves.length]] relevés</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+
+                <paper-item>
+                  <paper-item-body two-lines>
+                    <div>Relevés :</div>
+                    <div secondary>
+                      <paper-collapse-group>
+                        <template is="dom-repeat" items="[[aUser.releves]]" as="relevesUser" index-as="indexReleves">
+
+                          <paper-collapse-item id="relevesUsers[[indexReleves]]" icon="icons:info" header="Relevé [[getIndex(indexReleves)]]">
+                            <div role="listbox">
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Espèce</div>
+                                  <div secondary>[[relevesUser.espece]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Longitude</div>
+                                  <div secondary>[[showData(relevesUser.longitude)]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Latitude</div>
+                                  <div secondary>[[showData(relevesUser.latitude)]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Code postal</div>
+                                  <div secondary>[[showData(relevesUser.codepostal)]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.downloadURL1]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.downloadURL2]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.downloadURL3]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
+                                  <paper-button id="deleteUsersReleve[[index]]nb[[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+                              </paper-icon-item>
+
+                            </div>
+                          </paper-collapse-item>
+
+                        </template>
+                      </paper-collapse-group>
+                    </div>
+                  </paper-item-body>
+                </paper-item>
+
+              </br>
+
+            <paper-button
+                id="blockUser[[index]]"
+                raised on-tap="blockUser">
+              Bloquer utilisateur
+            </paper-button>
+
+            <paper-button
+                id="unblockUser[[index]]"
+                raised on-tap="unblockUser"
+                style="background: red;">
+              Débloquer utilisateur
+            </paper-button>
+
+
+
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div hidden$=[[isAdmin]]>
+        <h3 style="color:red">Vous n'êtes pas administrateur et n'avez donc pas accès à cette page</h3>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h3 style="color:red">Veuillez vous connecter pour pouvoir accéder à cette page</h3>
+    </template>
+
+
   </template>
 
   <script>
     Polymer({
       is: 'viewadmin-app',
+
+      properties: {
+        rootPath: String,
+        admins:{
+          type: Array,
+          readOnly: true,
+          notify: true,
+        },
+        isAdmin:{
+          type:Boolean,
+          value: false,
+          notify: true,
+        },
+        user:{
+          type: Object,
+          observer: "_userChanged",
+        },
+        datas:{
+          type:Array,
+          value:[]
+        },
+        eventBtn:{
+          type:Object
+        },
+        doAdded:{
+          type:Boolean,
+          value:true
+        },
+        doBanned:{
+          type:Boolean,
+          value:true
+        },
+        blockedUsers:{
+          type: Object,
+          notify : true,
+          value:{},
+        },
+        allReleves:{
+          type: Array,
+          value:[]
+        },
+        longMap:{
+          type: Number,
+          value:2.4
+        },
+        latMap:{
+          type: Number,
+          value:46.4762253
+        },
+        speciesArray : Array,
+      },
+
+      observers: [
+        "_adminsChanged(admins.length)",
+        "getBanStatus(blockedUsers.*)",
+        "allRelevesChanged(allReleves.*)",
+        'speciesArrayChange(speciesArray.*)',
+      ],
+
+
+      ready: function(){
+        var adminsArray = ["UzfeYBkxW1bcxCcxwIRuSQTdVdD2"];
+        this.adminsHandler(adminsArray);
+
+        firebase.app("iPreleveFirebase").database().ref("/releves").on("child_added", snapshot =>{
+          if(this.doAdded){
+            var datasUnUser = snapshot.val();
+
+            var releveUnUser = datasUnUser.releveUser;
+            var arrayReleve = [];
+            for(var item in releveUnUser){
+              arrayReleve.push(releveUnUser[item]);
+            }
+
+            var unUser = {
+              id : snapshot.key,
+              mail : datasUnUser.mail,
+              releves : arrayReleve
+            };
+            this.push("datas", unUser);
+          }
+            var count = 0;
+            var numUser = (this.datas.length) -1;
+
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[numUser].id+"/releveUser").on("child_added", snapshot =>{
+              if(this.doAdded){
+                if(count === 0){
+                  this.datas[numUser].releves = [];
+                }
+                count++;
+                var datasUnReleve = snapshot.val();
+                var unReleve = {
+                  espece : datasUnReleve.espece,
+                  longitude : datasUnReleve.longitude,
+                  latitude : datasUnReleve.latitude,
+                  codepostal : datasUnReleve.codepostal,
+                  downloadURL1 : datasUnReleve.downloadURL1,
+                  downloadURL2 : datasUnReleve.downloadURL2,
+                  downloadURL3 : datasUnReleve.downloadURL3
+                };
+                this.push("datas."+numUser+".releves", unReleve);
+
+                this.push("allReleves", unReleve);
+                this.notifyPath("allReleves");
+                this.notifyPath("datas");
+              }
+            });
+
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[numUser].id+"/releveUser").on("child_removed", oldChildSnapshot =>{
+              if(this.doAdded){
+                var datasUnReleve = oldChildSnapshot.val();
+                var unReleve = {
+                  espece : datasUnReleve.espece,
+                  longitude : datasUnReleve.longitude,
+                  latitude : datasUnReleve.latitude,
+                  codepostal : datasUnReleve.codepostal,
+                  downloadURL1 : datasUnReleve.downloadURL1,
+                  downloadURL2 : datasUnReleve.downloadURL2,
+                  downloadURL3 : datasUnReleve.downloadURL3
+                };
+                var index = this.checkReleve(numUser, unReleve);
+                if(index > -1){
+                  this.splice("datas."+numUser+".releves", index, 1);
+                  this.notifyPath("datas");
+                }
+
+                var indexAllReleves = this.checkReleveAllReleve(unReleve);
+                if(indexAllReleves > -1){
+                  this.splice("allReleves", index, 1);
+                  this.notifyPath("allReleves");
+                }
+              }
+            });
+
+        });
+
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_added", snapshot =>{
+          this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
+        });
+
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_changed", snapshot =>{
+          this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
+        });
+      },
+
+      speciesArrayChange: function(){
+          var tempArray = this.speciesArray;
+          tempArray.splice(this.speciesArray.length - 1, 1); //On retire la dernière case qui casse tout
+          for(var specie of tempArray){
+            firebase.app("iPreleveFirebase").database().ref("/species/"+specie).set(specie);
+          }
+          this.$.toastFill.open();
+      },
+
+      cleanDB: function(){
+        firebase.app("iPreleveFirebase").database().ref("/species").remove().then(e=>{
+          this.$.toastClean.open();
+        });
+      },
+
+      readFile: function(fileName){
+        var xmlRequest = new XMLHttpRequest();
+        xmlRequest.open("GET", fileName, true);
+        xmlRequest.onreadystatechange = function(){
+          if(xmlRequest.readyState == 4){
+            if(xmlRequest.status == 200 || xmlRequest.status == 0){
+              var text = xmlRequest.responseText;
+              this.speciesArray = text.split("\n");
+            }
+          }
+        }.bind(this);
+        xmlRequest.send(null);
+      },
+
+      fillDB: function(){
+        this.readFile("./src/specieList/listSpace");
+      },
+
+      checkReleve: function(numUser, releve){
+        for(var i = 0 ; i < this.datas[numUser].releves.length ; i++){
+          if ( (this.datas[numUser].releves[i].longitude === releve.longitude) &&
+            (this.datas[numUser].releves[i].latitude === releve.latitude) &&
+            (this.datas[numUser].releves[i].espece === releve.espece) &&
+            (this.datas[numUser].releves[i].codepostal === releve.codepostal) &&
+            (this.datas[numUser].releves[i].downloadURL1 === releve.downloadURL1) &&
+            (this.datas[numUser].releves[i].downloadURL2 === releve.downloadURL2) &&
+            (this.datas[numUser].releves[i].downloadURL3 === releve.downloadURL3) ){
+              return i;
+            }
+        }
+        return -1;
+      },
+
+      checkReleveAllReleve: function(releve){
+        for(var i = 0; i < this.allReleves.length ; i++){
+          if ( (this.allReleves[i].longitude === releve.longitude) &&
+            (this.allReleves[i].latitude === releve.latitude) &&
+            (this.allReleves[i].espece === releve.espece) &&
+            (this.allReleves[i].codepostal === releve.codepostal) &&
+            (this.allReleves[i].downloadURL1 === releve.downloadURL1) &&
+            (this.allReleves[i].downloadURL2 === releve.downloadURL2) &&
+            (this.allReleves[i].downloadURL3 === releve.downloadURL3) ){
+              return i;
+            }
+        }
+        return -1;
+      },
+
+      allRelevesChanged: function(){
+        this.recenterMap();
+      },
+
+      recenterMap: function(){
+        if(this.allReleves.length > 0){
+          var i = 0;
+          var moyLong = this.allReleves[0].longitude;
+          var moyLat = this.allReleves[0].latitude;
+          for(i = 1 ; i < this.allReleves.length ; i++){
+            moyLong += this.allReleves[i].longitude;
+            moyLat += this.allReleves[i].latitude;
+          }
+          moyLong /= this.allReleves.length;
+          moyLat /= this.allReleves.length;
+          this.longMap = moyLong;
+          this.latMap = moyLat;
+        }
+      },
+
+      adminsHandler: function(admins){
+        this._setAdmins(admins);
+      },
+
+
+      _adminsChanged: function(changeLength){
+        if(this.user != null){
+          this.isAdmin = this.checkIsAdmin();
+        }
+      },
+
+      _userChanged: function(){
+        if(this.admins != null && this.user != null){
+          this.isAdmin = this.checkIsAdmin();
+        }
+      },
+
+      checkIsAdmin: function(){
+        return this.admins.includes(this.user.uid);
+      },
+
+      getIndex: function(index){
+        return index + 1;
+      },
+
+      deleteReleve: function(event){
+        this.eventBtn = event;
+        this.$.dialogDelete0.open();
+      },
+
+      confirmDeleteReleve: function(){
+        var chaineId = this.eventBtn.path[0].id.substring("deleteUsersReleve".length);
+        var splitChaineId = chaineId.split("nb");
+
+        var userId = splitChaineId[0];
+        var numReleve = parseInt(splitChaineId[1]);
+        var wantedKey = "n"+numReleve;
+        var wantedDownloadUrl1 = this.datas[userId].releves[numReleve].downloadURL1;
+        var wantedDownloadUrl2 = this.datas[userId].releves[numReleve].downloadURL2;
+        var wantedDownloadUrl3 = this.datas[userId].releves[numReleve].downloadURL3;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
+          this.$.toastDelete.open();
+        }.bind(this));
+
+        this.updateDBKeyNames(userId, numReleve);
+
+        if(wantedDownloadUrl1){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl1).delete();
+        }
+        if(wantedDownloadUrl2){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl2).delete();
+        }
+        if(wantedDownloadUrl3){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl3).delete();
+        }
+      },
+
+      updateDBKeyNames: function(numUser, idDelete){
+        this.doAdded = false;
+
+        var userId = this.datas[numUser].id;
+        for(var i = idDelete ; i < this.datas[numUser].releves.length ; i++){
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).off("child_added");
+        }
+
+        this.doAdded = true;
+      },
+
+      blockUser: function(item){
+        this.eventBtn = item;
+        this.$.dialogBlock0.open();
+      },
+
+      unblockUser: function(item){
+        this.eventBtn = item;
+        this.$.dialogBlock1.open();
+      },
+
+      confirmBlockUser: function(){
+          if(this.datas.length > 0){
+            this.doBanned = (this.shadowRoot.querySelector("#blockUser0") != undefined);
+            var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
+            firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(true);
+            this.getBanStatus();
+            this.doBanned = true;
+        }
+      },
+
+      confirmUnblockUser: function(){
+          if(this.datas.length > 0){
+            this.doBanned = (this.shadowRoot.querySelector("#unblockUser0") != undefined);
+            var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("unblockUser".length))].id;
+            firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(false);
+            this.getBanStatus();
+            this.doBanned = true;
+        }
+      },
+
+      getBanStatus: function(){
+        if(this.doBanned){
+          var index = 0;
+          for(var id in this.blockedUsers){
+            if(this.get("blockedUsers."+id+".banned") == true && id != this.user.uid){
+              this.shadowRoot.querySelector("#blockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 0.2;
+              this.shadowRoot.querySelector("#unblockUser"+index).removeAttribute("disabled");
+              this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 1.0;
+            }else{
+              if(id != this.user.uid){
+                this.shadowRoot.querySelector("#blockUser"+index).removeAttribute("disabled");
+                this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 1.0;
+                this.shadowRoot.querySelector("#unblockUser"+index).setAttribute("disabled",true);
+                this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 0.2;
+              }
+            }
+
+            if(id === this.user.uid){ //admin courant
+              this.shadowRoot.querySelector("#blockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 0.2;
+              this.shadowRoot.querySelector("#unblockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 0.2;
+            }
+            index++;
+          }
+        }
+      },
+
+      _showError: function(error){
+        console.log(error);
+      },
+
+      showData: function(item){
+        if(item == false){
+          return "Non renseigné";
+        }else{
+          return item;
+        }
+      },
+
+      getLatitude: function(item){
+        if(item.latitude){
+          return parseFloat(item.latitude);
+        }else{
+          var geocodec = this.shadowRoot.getElementById("codec");
+          var resultat = geocodec.geocode(item.codepostal + ",FR", function(adress, lat, lng, place){
+            item.longitude = lng;
+            item.latitude = lat;
+            this.shadowRoot.querySelector("#markers").render();
+            this.recenterMap();
+          }.bind(this));
+        }
+      },
+
+      getLongitude: function(item){
+        if(item.longitude){
+          return parseFloat(item.longitude);
+        }
+      },
+
+
     });
   </script>
 </dom-module>
