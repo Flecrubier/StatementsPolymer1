@@ -180,8 +180,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <!--
           <paper-input style="width:20em" label="Images (3 max)" type="file" id="file-uploader" accept="image/*" multiple></paper-input>
 -->
-          <div>
-            <paper-button raised>
+          <div id="fileUp2">
+            <paper-button raised id="fileUp1">
             <file-input id="file-uploader" accept="image/*" maxFiles="3"></file-input>
             Choisir images
             </paper-button>
@@ -355,11 +355,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   this.CPInputReady = true;
                   this.geoValueChanged(this.latitude, this.longitude);
                 }
-
-                if(node.id === "file-uploader"){
-                  this.filesInput = this.shadowRoot.querySelector("#file-uploader").files;
-                  this.notifyPath("filesInput.length");
+                if(node.id === "fileUp2"){
                   this.shadowRoot.querySelector("#file-uploader").addEventListener("change", function(event){
+                    this.filesInput = this.shadowRoot.querySelector("#file-uploader").files;
                     this.notifyPath("filesInput.length");
                     if(this.filesInput.length > 3){
                       this.$.dialogUpload0.open();
