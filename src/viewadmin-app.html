@@ -360,7 +360,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                 this.push("allReleves", unReleve);
                 this.notifyPath("allReleves");
+                this.notifyPath("allReleves.*");
                 this.notifyPath("datas");
+                this.notifyPath("datas.*");
               }
             });
 
@@ -380,12 +382,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 if(index > -1){
                   this.splice("datas."+numUser+".releves", index, 1);
                   this.notifyPath("datas");
+                  this.notifyPath("datas.*");
                 }
 
                 var indexAllReleves = this.checkReleveAllReleve(unReleve);
                 if(indexAllReleves > -1){
                   this.splice("allReleves", index, 1);
                   this.notifyPath("allReleves");
+                  this.notifyPath("allReleves.*");
                 }
               }
             });
