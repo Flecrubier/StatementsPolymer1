@@ -443,6 +443,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.$.dialogUpload0.open();
             this.shadowRoot.querySelector("#file-uploader").reset(); //Clean FileList
           }else{
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies/"+this.selectedSpecie).set(this.selectedSpecie);
 
             this.downloadURLs = [];
             for(var i = 0 ; i < this.filesInput.length ; i++){

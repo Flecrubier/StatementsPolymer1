@@ -9,6 +9,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewbotadex-app">
@@ -20,14 +22,80 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 10px 20px;
       }
     </style>
-    <div class="card">
-      Oops you hit a Botadex
-    </div>
+    <template is="dom-if" if="[[user]]">
+      <h4>Liste des espèces obtenues</h4>
+      <template is="dom-repeat" items="[[discoS]]">
+        [[item]]
+      </template>
+
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+    </template>
+
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google">
+    </firebase-auth>
   </template>
 
   <script>
     Polymer({
       is: 'viewbotadex-app',
+
+      properties: {
+        discoS:{
+          type:Array,
+          value:[],
+        },
+        doAdded:{
+          type:Boolean,
+          value:true
+        },
+        userId:{
+          type:String,
+          value:""
+        }
+      },
+
+      ready: function(){
+        this.$.auth.addEventListener("signed-in-changed",function(e){
+          if(this.user){
+            //Connexion
+            this.createOns();
+          }else{
+            //Déconnexion
+            this.doOffs();
+          }
+        }.bind(this));
+      },
+
+      createOns: function(){
+        this.userId = this.user.uid;
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_added", snapshot=>{
+          if(this.doAdded){
+            console.log(snapshot.key);
+            this.push("discoS", snapshot.key);
+            this.notifyPath("discoS");
+          }
+        });
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_removed", oldChildSnapshot=>{
+          if(this.doAdded){
+            if(this.discoS.includes(oldChildSnapshot.key)){
+              this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
+            }
+          }
+        });
+      },
+
+      doOffs: function(){
+        this.splice("discoS", 0, this.discoS.length);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/discoveredSpecies").off();
+        this.userId = "";
+      }
     });
   </script>
 </dom-module>
