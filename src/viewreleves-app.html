@@ -288,6 +288,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               this.specie = null;
               this.codepostal = null;
               this.shadowRoot.querySelector("#liste").selectIndex(0);
+              this.shadowRoot.querySelector("#file-uploader").reset();
+              this.filesInput = [];
+              this.notifyPath("filesInput.length");
             }
           }.bind(this));
 
