@@ -11,6 +11,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewbotadex-app">
@@ -27,6 +29,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <template is="dom-repeat" items="[[discoS]]">
         [[item]]
       </template>
+
+      <paper-listbox>
+        <template is="dom-repeat" items="[[allSpecies]]" id="listSpecies">
+          <paper-item><span style$="[[styleSpecie(item)]]">[[item]]</span></paper-item>
+        </template>
+      </paper-listbox>
 
     </template>
 
@@ -47,6 +55,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       properties: {
         discoS:{
+          type:Array,
+          value:[],
+        },
+        allSpecies:{
           type:Array,
           value:[],
         },
@@ -76,9 +88,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.userId = this.user.uid;
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_added", snapshot=>{
           if(this.doAdded){
-            console.log(snapshot.key);
             this.push("discoS", snapshot.key);
             this.notifyPath("discoS");
+            this.shadowRoot.querySelector("#listSpecies").render();
           }
         });
 
@@ -86,16 +98,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if(this.doAdded){
             if(this.discoS.includes(oldChildSnapshot.key)){
               this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
+              this.notifyPath("discoS");
+              this.shadowRoot.querySelector("#listSpecies").render();
             }
           }
         });
+
+        firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+          if(this.doAdded){
+            this.push("allSpecies", snapshot.key);
+            this.notifyPath("allSpecies");
+            this.shadowRoot.querySelector("#listSpecies").render();
+          }
+        })
       },
 
       doOffs: function(){
         this.splice("discoS", 0, this.discoS.length);
+        this.notifyPath("discoS");
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/discoveredSpecies").off();
         this.userId = "";
-      }
+
+        this.splice("allSpecies", 0, this.allSpecies.length);
+        this.notifyPath("allSpecies");
+      },
+
+      hasDiscoveredSpecie: function(item){
+        return this.discoS.includes(item);
+      },
+
+      styleSpecie: function(item){
+        if(this.hasDiscoveredSpecie(item)){
+          return "color:green";
+        }else{
+          return "color:red";
+        }
+      },
+
+
+
     });
   </script>
 </dom-module>
