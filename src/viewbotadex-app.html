@@ -13,6 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../personnal_components/botadex-element/botadex-element.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewbotadex-app">
@@ -25,21 +26,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <template is="dom-if" if="[[user]]">
-      <h4>Liste des espèces obtenues</h4>
-      <template is="dom-repeat" items="[[discoS]]">
-        [[item]]
-      </template>
+      <botadex-element prop1="Changement boys"></botadex-element>
 
       <paper-listbox>
         <template is="dom-repeat" items="[[allSpecies]]" id="listSpecies">
-          <paper-item><span style$="[[styleSpecie(item)]]">[[item]]</span></paper-item>
+          <paper-item><span style$="[[styleSpecie(item, 0)]]">[[item.firstSpecie]]</span><span> /// </span><span style$="[[styleSpecie(item, 1)]]">[[item.secondSpecie]]</span></paper-item>
         </template>
       </paper-listbox>
 
     </template>
 
     <template is="dom-if" if="[[!user]]">
-      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+      <h4 style="color:red">Veuillez vous connecter afin de consulter le BotaDex</h4>
     </template>
 
     <firebase-auth
@@ -69,10 +67,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         userId:{
           type:String,
           value:""
-        }
+        },
+        numberSpecies:{
+          type:Number,
+          readOnly:true
+        },
+      },
+
+      observers:[
+        "allSpeciesCheck(allSpecies.length)",
+      ],
+
+      numberSpeciesHandler: function(number){
+        this._setNumberSpecies(number);
       },
 
       ready: function(){
+        const numberOfSpecies = 199;
+        this.numberSpeciesHandler(199);
+
         this.$.auth.addEventListener("signed-in-changed",function(e){
           if(this.user){
             //Connexion
@@ -90,6 +103,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if(this.doAdded){
             this.push("discoS", snapshot.key);
             this.notifyPath("discoS");
+            this.notifyPath("allSpecies");
             this.shadowRoot.querySelector("#listSpecies").render();
           }
         });
@@ -99,6 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             if(this.discoS.includes(oldChildSnapshot.key)){
               this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
               this.notifyPath("discoS");
+              this.notifyPath("allSpecies");
               this.shadowRoot.querySelector("#listSpecies").render();
             }
           }
@@ -127,12 +142,54 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return this.discoS.includes(item);
       },
 
-      styleSpecie: function(item){
-        if(this.hasDiscoveredSpecie(item)){
-          return "color:green";
+      styleSpecie: function(item, number){
+        if(!number && item.secondSpecie != undefined && item.secondSpecie != null){
+          if(this.hasDiscoveredSpecie(item.firstSpecie)){
+            return "color:green";
+          }else{
+            return "color:red";
+          }
+        }else if(number && item.secondSpecie != undefined && item.secondSpecie != null){
+          if(this.hasDiscoveredSpecie(item.secondSpecie)){
+            return "color:green";
+          }else{
+            return "color:red";
+          }
         }else{
-          return "color:red";
+          if(this.hasDiscoveredSpecie(item.firstSpecie)){
+            return "color:green";
+          }else{
+            return "color:red";
+          }
         }
+
+      },
+
+      allSpeciesCheck(length){
+        if(length === this.numberSpecies){
+          this.rearrangeAllSpecieArrayDisposition();
+        }
+      },
+
+      rearrangeAllSpecieArrayDisposition: function(){
+        var newArray = [];
+        for(var i = 0; i < this.allSpecies.length ; i++){
+          var objectTwoSpecies = {};
+          if(i%2){
+            objectTwoSpecies.firstSpecie = this.allSpecies[i-1];
+            objectTwoSpecies.secondSpecie = this.allSpecies[i];
+            newArray.push(objectTwoSpecies);
+          }
+        }
+
+        if(newArray.length != ((this.allSpecies.length)/2)){
+          var lastSpecie = {firstSpecie : this.allSpecies[(this.allSpecies.length)-1]};
+          newArray.push(lastSpecie);
+        }
+
+        this.allSpecies = newArray;
+        this.notifyPath("allSpecies");
+        this.shadowRoot.querySelector("#listSpecies").render();
       },
 
 
