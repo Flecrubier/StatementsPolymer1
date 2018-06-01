@@ -21,16 +21,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px 20px;
       }
     </style>
     <template is="dom-if" if="[[user]]">
 
       <template is="dom-repeat" items="[[allSpecies]]" id="listBotadex">
-        <div>
-          <span><botadex-element prop1="[[item.firstSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element></span><span>///</span><span><botadex-element prop1="[[item.secondSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element></span>
-        </div>
+          <botadex-element prop1="[[item.firstSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element>
       </template>
 
     </template>
@@ -107,7 +104,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.push("discoS", snapshot.key);
             this.notifyPath("discoS");
             this.notifyPath("allSpecies");
-            //this.shadowRoot.querySelector("#listSpecies").render();
           }
         });
 
@@ -117,7 +113,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
               this.notifyPath("discoS");
               this.notifyPath("allSpecies");
-              //this.shadowRoot.querySelector("#listSpecies").render();
             }
           }
         });
@@ -126,9 +121,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if(this.doAdded){
             this.push("allSpecies", snapshot.key);
             this.notifyPath("allSpecies");
-            //this.shadowRoot.querySelector("#listSpecies").render();
           }
-        })
+        });
       },
 
       doOffs: function(){
@@ -139,34 +133,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         this.splice("allSpecies", 0, this.allSpecies.length);
         this.notifyPath("allSpecies");
-        //this.shadowRoot.querySelector("#listSpecies").render();
-      },
-
-      hasDiscoveredSpecie: function(item){
-        return this.discoS.includes(item);
-      },
-
-      styleSpecie: function(item, number){
-        if(!number && item.secondSpecie != undefined && item.secondSpecie != null){
-          if(this.hasDiscoveredSpecie(item.firstSpecie)){
-            return "color:green";
-          }else{
-            return "color:red";
-          }
-        }else if(number && item.secondSpecie != undefined && item.secondSpecie != null){
-          if(this.hasDiscoveredSpecie(item.secondSpecie)){
-            return "color:green";
-          }else{
-            return "color:red";
-          }
-        }else{
-          if(this.hasDiscoveredSpecie(item.firstSpecie)){
-            return "color:green";
-          }else{
-            return "color:red";
-          }
-        }
-
       },
 
       allSpeciesCheck(length){
@@ -194,7 +160,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         this.allSpecies = newArray;
         this.notifyPath("allSpecies");
-        //this.shadowRoot.querySelector("#listSpecies").render();
       },
     });
   </script>
