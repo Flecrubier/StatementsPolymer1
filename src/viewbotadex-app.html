@@ -26,13 +26,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <template is="dom-if" if="[[user]]">
-      <botadex-element prop1="Changement boys"></botadex-element>
 
-      <paper-listbox>
-        <template is="dom-repeat" items="[[allSpecies]]" id="listSpecies">
-          <paper-item><span style$="[[styleSpecie(item, 0)]]">[[item.firstSpecie]]</span><span> /// </span><span style$="[[styleSpecie(item, 1)]]">[[item.secondSpecie]]</span></paper-item>
-        </template>
-      </paper-listbox>
+      <template is="dom-repeat" items="[[allSpecies]]" id="listBotadex">
+        <div>
+          <span><botadex-element prop1="[[item.firstSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element></span><span>///</span><span><botadex-element prop1="[[item.secondSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element></span>
+        </div>
+      </template>
 
     </template>
 
@@ -72,6 +71,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type:Number,
           readOnly:true
         },
+        isReady:{
+          type:Boolean,
+          value:false,
+        }
       },
 
       observers:[
@@ -104,7 +107,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.push("discoS", snapshot.key);
             this.notifyPath("discoS");
             this.notifyPath("allSpecies");
-            this.shadowRoot.querySelector("#listSpecies").render();
+            //this.shadowRoot.querySelector("#listSpecies").render();
           }
         });
 
@@ -114,7 +117,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
               this.notifyPath("discoS");
               this.notifyPath("allSpecies");
-              this.shadowRoot.querySelector("#listSpecies").render();
+              //this.shadowRoot.querySelector("#listSpecies").render();
             }
           }
         });
@@ -123,7 +126,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if(this.doAdded){
             this.push("allSpecies", snapshot.key);
             this.notifyPath("allSpecies");
-            this.shadowRoot.querySelector("#listSpecies").render();
+            //this.shadowRoot.querySelector("#listSpecies").render();
           }
         })
       },
@@ -136,6 +139,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         this.splice("allSpecies", 0, this.allSpecies.length);
         this.notifyPath("allSpecies");
+        //this.shadowRoot.querySelector("#listSpecies").render();
       },
 
       hasDiscoveredSpecie: function(item){
@@ -168,6 +172,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       allSpeciesCheck(length){
         if(length === this.numberSpecies){
           this.rearrangeAllSpecieArrayDisposition();
+          this.isReady = true;
         }
       },
 
@@ -189,11 +194,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         this.allSpecies = newArray;
         this.notifyPath("allSpecies");
-        this.shadowRoot.querySelector("#listSpecies").render();
+        //this.shadowRoot.querySelector("#listSpecies").render();
       },
-
-
-
     });
   </script>
 </dom-module>

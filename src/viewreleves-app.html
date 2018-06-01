@@ -404,8 +404,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       specieChanged: function(){
-        this.numMatch = 0;
-        this.shadowRoot.querySelector("#matchSpecies").render();
+        if(this.specie){
+          this.numMatch = 0;
+          this.shadowRoot.querySelector("#matchSpecies").render();
+        }
       },
 
       checkReleve: function(releve){

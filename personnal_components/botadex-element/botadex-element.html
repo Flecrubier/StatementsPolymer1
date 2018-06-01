@@ -7,7 +7,7 @@
         display: block;
       }
     </style>
-    <h2>Hello [[prop1]]!</h2>
+    <span style$="[[styleSpecie(prop1)]]" id="text">[[prop1]]</span>
   </template>
 
   <script>
@@ -20,7 +20,44 @@
           type: String,
           value: 'botadex-element',
         },
+        disco:{
+          type: Array,
+          value:[],
+        },
+        apply:{
+          type:Boolean,
+          value:false,
+          observer:"applyChanged"
+        }
       },
+
+      styleSpecie: function(item){
+        if(this.hasDiscoveredSpecie(item)){
+          return "color:green";
+        }else{
+          return "color:red";
+        }
+      },
+
+      hasDiscoveredSpecie: function(item){
+        if(this.apply){
+          return this.disco.includes(item);
+        }
+      },
+
+      applyChanged: function(){
+        if(this.apply){
+          this.$.text.style.color = this.getColor();
+        }
+      },
+
+      getColor: function(){
+        if(this.hasDiscoveredSpecie(this.prop1)){
+          return "green";
+        }else{
+          return "red";
+        }
+      }
 
     });
   </script>
