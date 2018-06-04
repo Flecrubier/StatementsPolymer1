@@ -166,8 +166,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
-            <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
-            <viewgmap-app name="viewgmap" user="[[user]]"></viewgmap-app>
+            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}"></viewreleves-app>
+            <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}"></viewgmap-app>
             <viewbotadex-app name="viewbotadex" user="[[user]]"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
             <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
@@ -203,10 +203,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           reflectToAttribute: true,
           observer: '_pageChanged',
         },
+        dataReleves:{
+          type:Array,
+          value:[],
+        },
+        doAdded:{
+          type:Boolean,
+          value:true
+        },
       },
 
       observers: [
         '_routePageChanged(routeData.page)',
+        "datas(dataReleves.length)"
       ],
 
       ready: function(){
@@ -258,6 +267,79 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               this.$.dialogAuth4.open();
           }
         });
+        this.$.auth.addEventListener("signed-in-changed", function(e){
+          if(this.$.auth.user){
+            this.createOns();
+          }else{
+            this.doOffs();
+          }
+        }.bind(this));
+      },
+
+      createOns: function(){
+        this.userId = this.$.auth.user.uid;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.$.auth.user.uid+"/releveUser")
+                      .on("child_added",snapshot =>{
+                        if(this.doAdded){
+                          var datasUnReleve = snapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            longitude : datasUnReleve.longitude,
+                            latitude : datasUnReleve.latitude,
+                            codepostal : datasUnReleve.codepostal,
+                            downloadURL1 : datasUnReleve.downloadURL1,
+                            downloadURL2 : datasUnReleve.downloadURL2,
+                            downloadURL3 : datasUnReleve.downloadURL3
+                          };
+                          console.log(unReleve);
+                          this.push("dataReleves", unReleve);
+                          this.notifyPath("datasUnReleve");
+                        }
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.$.auth.user.uid+"/releveUser")
+                      .on("child_removed", oldChildSnapshot=>{
+                        if(this.doAdded){
+                          var datasUnReleve = oldChildSnapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            longitude : datasUnReleve.longitude,
+                            latitude : datasUnReleve.latitude,
+                            codepostal : datasUnReleve.codepostal,
+                            downloadURL1 : datasUnReleve.downloadURL1,
+                            downloadURL2 : datasUnReleve.downloadURL2,
+                            downloadURL3 : datasUnReleve.downloadURL3
+                          };
+                          var index = this.checkReleve(unReleve);
+                          if(index > -1){
+                            this.splice("dataReleves", index, 1);
+                            this.notifyPath("datasUnReleve");
+                          }
+                        }
+          });
+      },
+
+      checkReleve: function(releve){
+        for(var i = 0 ; i < this.datas.length ; i++){
+          if ( (this.datas[i].longitude === releve.longitude) &&
+            (this.datas[i].latitude === releve.latitude) &&
+            (this.datas[i].espece === releve.espece) &&
+            (this.datas[i].codepostal === releve.codepostal) &&
+            (this.datas[i].downloadURL1 === releve.downloadURL1) &&
+            (this.datas[i].downloadURL2 === releve.downloadURL2) &&
+            (this.datas[i].downloadURL3 === releve.downloadURL3) ){
+              return i;
+            }
+        }
+        return -1;
+      },
+
+      doOffs: function(){
+        this.splice("dataReleves", 0, this.dataReleves.length);
+        this.notifyPath("datasUnReleve");
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        this.userId = "";
       },
 
       _routePageChanged: function(page) {
@@ -282,6 +364,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
         firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
       },
+
+      datas: function(kength){
+        console.log(this.dataReleves);
+      }
 
     });
   </script>

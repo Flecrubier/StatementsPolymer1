@@ -206,7 +206,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       properties: {
         datas:{
           type:Array,
-          value:[]
+          value:[],
         },
         eventBtn:{
           type:Object
@@ -256,6 +256,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       observers: [
         "geoValueChanged(latitude, longitude, CPInputReady)",
+        "datasChanged(datas.length)",
       ],
 
       created: function(){
@@ -280,10 +281,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.$.auth.addEventListener("signed-in-changed",function(e){
             if(this.user){
               //Connexion
-              this.createOns();
             }else{
               //Déconnexion
-              this.doOffs();
               this.selectedSpecie = null;
               this.specie = null;
               this.codepostal = null;
@@ -298,53 +297,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.selectedSpecie = e.detail.item.innerText;
           }.bind(this));
 
-      },
-
-      createOns: function(){
-        this.userId = this.user.uid;
-
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .on("child_added",snapshot =>{
-                        if(this.doAdded){
-                          var datasUnReleve = snapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            longitude : datasUnReleve.longitude,
-                            latitude : datasUnReleve.latitude,
-                            codepostal : datasUnReleve.codepostal,
-                            downloadURL1 : datasUnReleve.downloadURL1,
-                            downloadURL2 : datasUnReleve.downloadURL2,
-                            downloadURL3 : datasUnReleve.downloadURL3
-                          };
-                          this.push("datas", unReleve);
-                        }
-          });
-
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .on("child_removed", oldChildSnapshot=>{
-                        if(this.doAdded){
-                          var datasUnReleve = oldChildSnapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            longitude : datasUnReleve.longitude,
-                            latitude : datasUnReleve.latitude,
-                            codepostal : datasUnReleve.codepostal,
-                            downloadURL1 : datasUnReleve.downloadURL1,
-                            downloadURL2 : datasUnReleve.downloadURL2,
-                            downloadURL3 : datasUnReleve.downloadURL3
-                          };
-                          var index = this.checkReleve(unReleve);
-                          if(index > -1){
-                            this.splice("datas", index, 1);
-                          }
-                        }
-          });
-      },
-
-      doOffs: function(){
-        this.splice("datas", 0, this.datas.length);
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
-        this.userId = "";
       },
 
       createMutationObserver: function(){
@@ -375,6 +327,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }.bind(this));
 
         observer.observe(this.shadowRoot, config);
+      },
+
+      datasChanged: function(length){
+        console.log(length);
       },
 
       geoValueChanged: function(latitude, longitude){
@@ -408,21 +364,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.numMatch = 0;
           this.shadowRoot.querySelector("#matchSpecies").render();
         }
-      },
-
-      checkReleve: function(releve){
-        for(var i = 0 ; i < this.datas.length ; i++){
-          if ( (this.datas[i].longitude === releve.longitude) &&
-            (this.datas[i].latitude === releve.latitude) &&
-            (this.datas[i].espece === releve.espece) &&
-            (this.datas[i].codepostal === releve.codepostal) &&
-            (this.datas[i].downloadURL1 === releve.downloadURL1) &&
-            (this.datas[i].downloadURL2 === releve.downloadURL2) &&
-            (this.datas[i].downloadURL3 === releve.downloadURL3) ){
-              return i;
-            }
-        }
-        return -1;
       },
 
       isEqual: function(a, b) {
