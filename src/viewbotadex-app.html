@@ -26,8 +26,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
     <template is="dom-if" if="[[user]]">
 
-      <template is="dom-repeat" items="[[allSpecies]]" id="listBotadex">
-          <botadex-element prop1="[[item.firstSpecie]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element>
+      <template is="dom-repeat" items="[[allspecies]]" id="listBotadex">
+          <botadex-element prop1="[[item]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element>
       </template>
 
     </template>
@@ -52,7 +52,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type:Array,
           value:[],
         },
-        allSpecies:{
+        allspecies:{
           type:Array,
           value:[],
         },
@@ -67,11 +67,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         isReady:{
           type:Boolean,
           value:false,
+        },
+        doadded:{
+          type:Boolean,
+          value: true
         }
       },
 
       observers:[
-        "allSpeciesCheck(allSpecies.length)",
+        "allSpeciesCheck(allspecies.length)",
       ],
 
       numberSpeciesHandler: function(number){
@@ -96,19 +100,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       createOns: function(){
         this.userId = this.user.uid;
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_added", snapshot=>{
-          if(this.doAdded){
+          if(this.doadded){
             this.push("discoS", snapshot.key);
             this.notifyPath("discoS");
-            this.notifyPath("allSpecies");
           }
         });
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_removed", oldChildSnapshot=>{
-          if(this.doAdded){
+          if(this.doadded){
             if(this.discoS.includes(oldChildSnapshot.key)){
               this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
               this.notifyPath("discoS");
-              this.notifyPath("allSpecies");
             }
           }
         });
@@ -121,7 +123,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.userId = "";
       },
 
-      allSpeciesCheck(length){
+      allSpeciesCheck: function(length){
         if(length === this.numberSpecies){
           this.isReady = true;
         }

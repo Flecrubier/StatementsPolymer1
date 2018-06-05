@@ -40,6 +40,10 @@
         }
       },
 
+      observers:[
+        "discoUpdate(disco.length)",
+      ],
+
       styleSpecie: function(item){
         if(this.hasDiscoveredSpecie(item)){
           return "color:green";
@@ -66,6 +70,10 @@
         }else{
           return "red";
         }
+      },
+
+      discoUpdate: function(length){
+        this.applyChanged();
       }
 
     });

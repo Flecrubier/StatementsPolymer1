@@ -166,9 +166,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
-            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" doadded="{{doAdded}}"></viewreleves-app>
+            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}"></viewreleves-app>
             <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}" doadded="{{doAdded}}"></viewgmap-app>
-            <viewbotadex-app name="viewbotadex" user="[[user]]"></viewbotadex-app>
+            <viewbotadex-app name="viewbotadex" user="[[user]]" allspecies="{{allSpecies}}" doadded="{{doAdded}}"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
             <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
             <view404-app name="view404"></view404-app>
@@ -209,7 +209,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
         doAdded:{
           type:Boolean,
-          value:true
+          value:true,
+          observer:"doAddedStatus"
         },
         allSpecies:{
           type:Array,
@@ -219,7 +220,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       observers: [
         '_routePageChanged(routeData.page)',
-        "datas(dataReleves.length)"
+        "showDatas(datas.length)",
       ],
 
       ready: function(){
@@ -326,6 +327,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
             if(this.doAdded){
               this.push("allSpecies", snapshot.key);
+              this.notifyPath("allSpecies");
             }
           });
       },
@@ -374,6 +376,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
         firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
       },
+
+      showDatas: function(length){
+        console.log(this.datas);
+      },
+
+      doAddedStatus: function(){
+        console.log("doAdded", this.doAdded);
+      }
 
     });
   </script>

@@ -168,7 +168,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <div>
             <paper-dropdown-menu>
               <paper-listbox class="dropdown-content" id="liste">
-                <template id="matchSpecies" is="dom-repeat" items="[[allSpecies]]" filter="doMatch">
+                <template id="matchSpecies" is="dom-repeat" items="[[allspecies]]" filter="doMatch">
                   <paper-item>[[item]]</paper-item>
                 </template>
               </paper-listbox>
@@ -213,7 +213,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
         doadded:{
           type:Boolean,
-          value:true
+          observer:"doAddedStatus"
         },
         latitude:{
           type:Number,
@@ -247,6 +247,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
         selectedSpecie:{
           type:String
+        },
+        allspecies:{
+          type:Array,
+          value:[],
         },
       },
 
@@ -495,6 +499,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return item;
         }
       },
+
+      doAddedStatus: function(){
+        console.log("viewReleve, doadded", this.doadded);
+      }
 
     });
   </script>
