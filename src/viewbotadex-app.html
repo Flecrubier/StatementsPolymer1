@@ -76,10 +76,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       observers:[
         "allSpeciesCheck(allspecies.length)",
+        "ds(discoS.length)",
       ],
 
       numberSpeciesHandler: function(number){
         this._setNumberSpecies(number);
+
+        //Un correctif vite fait qui fonctionne
+        this.allSpeciesCheck(this.allspecies.length);
       },
 
       ready: function(){
@@ -124,10 +128,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       allSpeciesCheck: function(length){
+        //CE TEST FOIRE SI ON CHARGE BOTADEX APRES PAGE RELEVE
+        //console.log("allSpecies length", length, this.numberSpecies);
         if(length === this.numberSpecies){
           this.isReady = true;
         }
       },
+
+      ds: function(length){
+        //console.log(this.discoS);
+      }
     });
   </script>
 </dom-module>
