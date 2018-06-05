@@ -112,13 +112,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
           }
         });
-
-        firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
-          if(this.doAdded){
-            this.push("allSpecies", snapshot.key);
-            this.notifyPath("allSpecies");
-          }
-        });
       },
 
       doOffs: function(){
@@ -126,36 +119,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.notifyPath("discoS");
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/discoveredSpecies").off();
         this.userId = "";
-
-        this.splice("allSpecies", 0, this.allSpecies.length);
-        this.notifyPath("allSpecies");
       },
 
       allSpeciesCheck(length){
         if(length === this.numberSpecies){
-          this.rearrangeAllSpecieArrayDisposition();
           this.isReady = true;
         }
-      },
-
-      rearrangeAllSpecieArrayDisposition: function(){
-        var newArray = [];
-        for(var i = 0; i < this.allSpecies.length ; i++){
-          var objectTwoSpecies = {};
-          if(i%2){
-            objectTwoSpecies.firstSpecie = this.allSpecies[i-1];
-            objectTwoSpecies.secondSpecie = this.allSpecies[i];
-            newArray.push(objectTwoSpecies);
-          }
-        }
-
-        if(newArray.length != ((this.allSpecies.length)/2)){
-          var lastSpecie = {firstSpecie : this.allSpecies[(this.allSpecies.length)-1]};
-          newArray.push(lastSpecie);
-        }
-
-        this.allSpecies = newArray;
-        this.notifyPath("allSpecies");
       },
     });
   </script>

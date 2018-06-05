@@ -40,7 +40,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         disable-map-type-control
         disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
 
-        <template is="dom-repeat" items="[[dataG]]" mutable-data id="markers">
+        <template is="dom-repeat" items="[[datag]]" mutable-data id="markers">
           <google-map-marker
             longitude="[[getLongitude(item)]]"
             latitude="[[getLatitude(item)]]">
@@ -68,7 +68,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'viewgmap-app',
 
       properties: {
-        dataG:{
+        datag:{
           type:Array,
           value:[]
         },
@@ -80,7 +80,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Number,
           value:46.4762253
         },
-        doAdded:{
+        doadded:{
           type: Boolean,
           value:true
         },
@@ -94,68 +94,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       observers:[
-        "_dataGChanged(dataG.length)"
+        "_datagChanged(datag.length)"
       ],
 
 
       ready: function(){
         this.createMutationObserver();
-
-        this.$.auth.addEventListener("signed-in-changed",function(e){
-          if(this.user){
-            //Connexion
-            this.createOns();
-          }else{
-            //Déconnexion
-            this.doOffs();
-          }
-        }.bind(this));
-      },
-
-      createOns: function(){
-        this.userId = this.user.uid;
-
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_added", snapshot =>{
-          if(this.doAdded){
-            var datasUnReleve = snapshot.val();
-            var unReleve ={
-              espece : datasUnReleve.espece,
-              longitude : datasUnReleve.longitude,
-              latitude : datasUnReleve.latitude,
-              codepostal : datasUnReleve.codepostal,
-              downloadURL1 : datasUnReleve.downloadURL1,
-              downloadURL2 : datasUnReleve.downloadURL2,
-              downloadURL3 : datasUnReleve.downloadURL3
-            };
-            this.push("dataG", unReleve);
-            this.notifyPath("dataG");
-          }
-        });
-
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_removed", oldChildSnapshot =>{
-          if(this.doAdded){
-            var datasUnReleve = oldChildSnapshot.val();
-            var unReleve = {
-              espece : datasUnReleve.espece,
-              longitude : datasUnReleve.longitude,
-              latitude : datasUnReleve.latitude,
-              codepostal : datasUnReleve.codepostal,
-              downloadURL1 : datasUnReleve.downloadURL1,
-              downloadURL2 : datasUnReleve.downloadURL2,
-              downloadURL3 : datasUnReleve.downloadURL3
-            };
-            var index = this.checkReleve(unReleve);
-            if(index > -1){
-                this.splice("dataG", index, 1);
-            }
-          }
-        });
-      },
-
-      doOffs: function(){
-        this.splice("dataG", 0, this.dataG.length);
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
-        this.userId = "";
       },
 
       createMutationObserver: function(){
@@ -176,35 +120,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       checkReleve: function(releve){
-        for(var i = 0 ; i < this.dataG.length ; i++){
-          if ( (this.dataG[i].longitude === releve.longitude) &&
-            (this.dataG[i].latitude === releve.latitude) &&
-            (this.dataG[i].espece === releve.espece) &&
-            (this.dataG[i].codepostal === releve.codepostal) &&
-            (this.dataG[i].downloadURL1 === releve.downloadURL1) &&
-            (this.dataG[i].downloadURL2 === releve.downloadURL2) &&
-            (this.dataG[i].downloadURL3 === releve.downloadURL3) ){
+        for(var i = 0 ; i < this.datag.length ; i++){
+          if ( (this.datag[i].longitude === releve.longitude) &&
+            (this.datag[i].latitude === releve.latitude) &&
+            (this.datag[i].espece === releve.espece) &&
+            (this.datag[i].codepostal === releve.codepostal) &&
+            (this.datag[i].downloadURL1 === releve.downloadURL1) &&
+            (this.datag[i].downloadURL2 === releve.downloadURL2) &&
+            (this.datag[i].downloadURL3 === releve.downloadURL3) ){
               return i;
             }
         }
         return -1;
       },
 
-      _dataGChanged: function(changeLength){
+      _datagChanged: function(changeLength){
         this.recenterMap();
       },
 
       recenterMap: function(){
-        if(this.dataG.length > 0){
+        if(this.datag.length > 0){
           var i = 0;
-          var moyLong = this.dataG[0].longitude;
-          var moyLat = this.dataG[0].latitude;
-          for(i = 1 ; i < this.dataG.length ; i++){
-            moyLong += this.dataG[i].longitude;
-            moyLat += this.dataG[i].latitude;
+          var moyLong = this.datag[0].longitude;
+          var moyLat = this.datag[0].latitude;
+          for(i = 1 ; i < this.datag.length ; i++){
+            moyLong += this.datag[i].longitude;
+            moyLat += this.datag[i].latitude;
           }
-          moyLong /= this.dataG.length;
-          moyLat /= this.dataG.length;
+          moyLong /= this.datag.length;
+          moyLat /= this.datag.length;
           this.longMap = moyLong;
           this.latMap = moyLat;
         }

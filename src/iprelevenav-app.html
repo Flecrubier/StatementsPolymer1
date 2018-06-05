@@ -166,8 +166,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
-            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}"></viewreleves-app>
-            <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}"></viewgmap-app>
+            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" doadded="{{doAdded}}"></viewreleves-app>
+            <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}" doadded="{{doAdded}}"></viewgmap-app>
             <viewbotadex-app name="viewbotadex" user="[[user]]"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
             <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
@@ -210,6 +210,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         doAdded:{
           type:Boolean,
           value:true
+        },
+        allSpecies:{
+          type:Array,
+          value:[]
         },
       },
 
@@ -294,7 +298,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                           };
                           console.log(unReleve);
                           this.push("dataReleves", unReleve);
-                          this.notifyPath("datasUnReleve");
+                          this.notifyPath("dataReleves");
                         }
           });
 
@@ -314,21 +318,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                           var index = this.checkReleve(unReleve);
                           if(index > -1){
                             this.splice("dataReleves", index, 1);
-                            this.notifyPath("datasUnReleve");
+                            this.notifyPath("dataReleves");
                           }
                         }
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+            if(this.doAdded){
+              this.push("allSpecies", snapshot.key);
+            }
           });
       },
 
       checkReleve: function(releve){
-        for(var i = 0 ; i < this.datas.length ; i++){
-          if ( (this.datas[i].longitude === releve.longitude) &&
-            (this.datas[i].latitude === releve.latitude) &&
-            (this.datas[i].espece === releve.espece) &&
-            (this.datas[i].codepostal === releve.codepostal) &&
-            (this.datas[i].downloadURL1 === releve.downloadURL1) &&
-            (this.datas[i].downloadURL2 === releve.downloadURL2) &&
-            (this.datas[i].downloadURL3 === releve.downloadURL3) ){
+        for(var i = 0 ; i < this.dataReleves.length ; i++){
+          if ( (this.dataReleves[i].longitude === releve.longitude) &&
+            (this.dataReleves[i].latitude === releve.latitude) &&
+            (this.dataReleves[i].espece === releve.espece) &&
+            (this.dataReleves[i].codepostal === releve.codepostal) &&
+            (this.dataReleves[i].downloadURL1 === releve.downloadURL1) &&
+            (this.dataReleves[i].downloadURL2 === releve.downloadURL2) &&
+            (this.dataReleves[i].downloadURL3 === releve.downloadURL3) ){
               return i;
             }
         }
@@ -337,7 +347,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       doOffs: function(){
         this.splice("dataReleves", 0, this.dataReleves.length);
-        this.notifyPath("datasUnReleve");
+        this.notifyPath("dataReleves");
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
         this.userId = "";
       },
@@ -364,10 +374,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
         firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
       },
-
-      datas: function(kength){
-        console.log(this.dataReleves);
-      }
 
     });
   </script>
