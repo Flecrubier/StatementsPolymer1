@@ -271,6 +271,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               //Connexion
             }else{
               //Déconnexion
+              this.numMatch = 0;
               this.selectedSpecie = null;
               this.specie = null;
               this.codepostal = null;
@@ -504,7 +505,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       refreshDBKeyNames: function(idDelete){
-        console.log(this.datas.length);
         for(var i = idDelete ; i < this.datas.length ; i++){
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
@@ -513,12 +513,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
         }
-        console.log(this.datas);
-        console.log("n"+this.datas.length);
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+((this.datas.length)-1)).remove();
-        console.log(this.datas);
         this.shadowRoot.querySelector("#forReleves").render();
-
       },
 
       showData: function(item){

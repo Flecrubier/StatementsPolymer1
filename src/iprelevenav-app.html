@@ -325,6 +325,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       doOffs: function(){
+        this.splice("allSpecies", 0, this.allSpecies.length);
+        this.notifyPath("allSpecies");
+        firebase.app("iPreleveFirebase").database().ref("/species").off();
         //this.splice("dataReleves", 0, this.dataReleves.length);
         //this.notifyPath("dataReleves");//Ou utiliser fonction de la query
         //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
