@@ -15,7 +15,12 @@
       }
     </style>
     <div class="botadexStyle">
-      <span style$="[[styleSpecie(prop1)]]" id="text">[[prop1]]</span>
+      <div>
+        <span style$="[[styleSpecie(prop1)]]" id="text">[[prop1]]</span>
+      </div>
+      <div>
+        <span id="number">Relevé [[getNumberTaken(prop1)]] fois</span>
+      </div>
     </div>
   </template>
 
@@ -41,7 +46,7 @@
       },
 
       observers:[
-        "discoUpdate(disco.length)",
+        "discoUpdate(disco.*)",
       ],
 
       styleSpecie: function(item){
@@ -54,7 +59,12 @@
 
       hasDiscoveredSpecie: function(item){
         if(this.apply){
-          return this.disco.includes(item);
+          for(var i = 0 ; i < this.disco.length ; i++){
+            if(this.disco[i].$key === item){
+              return true;
+            }
+          }
+          return false;
         }
       },
 
@@ -72,8 +82,22 @@
         }
       },
 
+      getNumberTaken: function(specie){
+        if(this.disco){
+          for(var i = 0 ; i < this.disco.length ; i++){
+            if(this.disco[i].$key === specie){
+              return this.disco[i].$val;
+            }
+          }
+          return 0;
+        }else{
+          return 'X';
+        }
+      },
+
       discoUpdate: function(length){
         this.applyChanged();
+        this.$.number.innerText = "Relevé " + this.getNumberTaken(this.prop1) + " fois"
       }
 
     });

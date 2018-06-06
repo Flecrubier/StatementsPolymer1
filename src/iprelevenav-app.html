@@ -167,9 +167,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
-            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}" dataref="{{ref}}"></viewreleves-app>
+            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}" discospecies="{{discos}}"></viewreleves-app>
             <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}" doadded="{{doAdded}}"></viewgmap-app>
-            <viewbotadex-app name="viewbotadex" user="[[user]]" allspecies="{{allSpecies}}" doadded="{{doAdded}}"></viewbotadex-app>
+            <viewbotadex-app name="viewbotadex" user="[[user]]" allspecies="{{allSpecies}}" doadded="{{doAdded}}" discos="{{discos}}"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
             <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
             <view404-app name="view404"></view404-app>
@@ -197,8 +197,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app-name="iPreleveFirebase"
       id="query"
       path="/releves/[[user.uid]]/releveUser"
-      data="{{dataReleves}}"
-      ref="{{ref}}">
+      data="{{dataReleves}}">
+    </firebase-query>
+
+    <firebase-query
+      app-name="iPreleveFirebase"
+      id="queryDisco"
+      path="/releves/[[user.uid]]/discoveredSpecies"
+      data="{{discos}}">
     </firebase-query>
   </template>
 
@@ -225,6 +231,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type:Array,
           value:[]
         },
+        discos:{
+          type:Array,
+          value:[],
+        }
       },
 
       observers: [
@@ -293,53 +303,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       createOns: function(){
         this.userId = this.$.auth.user.uid;
 
-        /*
-
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.$.auth.user.uid+"/releveUser")
-                      .on("child_added",snapshot =>{
-                        if(this.doAdded){
-                          var datasUnReleve = snapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            longitude : datasUnReleve.longitude,
-                            latitude : datasUnReleve.latitude,
-                            codepostal : datasUnReleve.codepostal,
-                            downloadURL1 : datasUnReleve.downloadURL1,
-                            downloadURL2 : datasUnReleve.downloadURL2,
-                            downloadURL3 : datasUnReleve.downloadURL3
-                          };
-                          this.push("dataReleves", unReleve);
-                          this.notifyPath("dataReleves");
-                        }
-          });
-
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.$.auth.user.uid+"/releveUser")
-                      .on("child_removed", oldChildSnapshot=>{
-                        if(this.doAdded){
-                          var datasUnReleve = oldChildSnapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            longitude : datasUnReleve.longitude,
-                            latitude : datasUnReleve.latitude,
-                            codepostal : datasUnReleve.codepostal,
-                            downloadURL1 : datasUnReleve.downloadURL1,
-                            downloadURL2 : datasUnReleve.downloadURL2,
-                            downloadURL3 : datasUnReleve.downloadURL3
-                          };
-                          console.log("key", oldChildSnapshot.key);
-                          var index = this.checkReleve(unReleve);
-                          if(index > -1){
-                            this.splice("dataReleves", index, 1);
-                            console.log(this.dataReleves);
-                            this.notifyPath("dataReleves");
-                          }
-                        }
-          });*/
-
-          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
-            this.push("allSpecies", snapshot.key);
-            this.notifyPath("allSpecies");
-          });
+        firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+          this.push("allSpecies", snapshot.key);
+          this.notifyPath("allSpecies");
+        });
       },
 
       checkReleve: function(releve){

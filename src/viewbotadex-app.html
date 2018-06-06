@@ -27,7 +27,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template is="dom-if" if="[[user]]">
 
       <template is="dom-repeat" items="[[allspecies]]" id="listBotadex">
-          <botadex-element prop1="[[item]]" disco="[[discoS]]" apply="[[isReady]]"></botadex-element>
+          <botadex-element prop1="[[item]]" disco="[[discos]]" apply="[[isReady]]"></botadex-element>
       </template>
 
     </template>
@@ -48,7 +48,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'viewbotadex-app',
 
       properties: {
-        discoS:{
+        discos:{
           type:Array,
           value:[],
         },
@@ -76,7 +76,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       observers:[
         "allSpeciesCheck(allspecies.length)",
-        "ds(discoS.length)",
+        "ds(discos.length)",
       ],
 
       numberSpeciesHandler: function(number){
@@ -102,29 +102,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       createOns: function(){
-        this.userId = this.user.uid;
+        /*this.userId = this.user.uid;
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_added", snapshot=>{
           if(this.doadded){
-            this.push("discoS", snapshot.key);
-            this.notifyPath("discoS");
+            this.push("discos", snapshot.key);
+            this.notifyPath("discos");
           }
         });
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies").on("child_removed", oldChildSnapshot=>{
           if(this.doadded){
-            if(this.discoS.includes(oldChildSnapshot.key)){
-              this.splice("discoS", this.discoS.indexOf(oldChildSnapshot.key), 1);
-              this.notifyPath("discoS");
+            if(this.discos.includes(oldChildSnapshot.key)){
+              this.splice("discos", this.discos.indexOf(oldChildSnapshot.key), 1);
+              this.notifyPath("discos");
             }
           }
-        });
+        });*/
       },
 
       doOffs: function(){
-        this.splice("discoS", 0, this.discoS.length);
-        this.notifyPath("discoS");
+        /*
+        this.splice("discoS", 0, this.discos.length);
+        this.notifyPath("discos");
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/discoveredSpecies").off();
-        this.userId = "";
+        this.userId = "";*/
       },
 
       allSpeciesCheck: function(length){
@@ -136,7 +137,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       ds: function(length){
-        //console.log(this.discoS);
+        console.log(this.discos);
       }
     });
   </script>
