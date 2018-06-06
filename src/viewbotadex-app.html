@@ -128,7 +128,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       allSpeciesCheck: function(length){
-        //CE TEST FOIRE SI ON CHARGE BOTADEX APRES PAGE RELEVE
+        //Au chargement, si page relevé chargé avant, pas de rechargement des espèces et a ce moment, numberspcies est undefined
         //console.log("allSpecies length", length, this.numberSpecies);
         if(length === this.numberSpecies){
           this.isReady = true;

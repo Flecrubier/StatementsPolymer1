@@ -23,6 +23,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="my-icons.html">
 
 <dom-module id="iprelevenav-app">
@@ -166,7 +167,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
-            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}"></viewreleves-app>
+            <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}" dataref="{{ref}}"></viewreleves-app>
             <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}" doadded="{{doAdded}}"></viewgmap-app>
             <viewbotadex-app name="viewbotadex" user="[[user]]" allspecies="{{allSpecies}}" doadded="{{doAdded}}"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
@@ -191,6 +192,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       user="{{user}}"
       on-error="_showError">
     </firebase-auth>
+
+    <firebase-query
+      app-name="iPreleveFirebase"
+      id="query"
+      path="/releves/[[user.uid]]/releveUser"
+      data="{{dataReleves}}"
+      ref="{{ref}}">
+    </firebase-query>
   </template>
 
   <script>
@@ -220,7 +229,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       observers: [
         '_routePageChanged(routeData.page)',
-        "showDatas(datas.length)",
+        "showDatas(dataReleves.length)",
       ],
 
       ready: function(){
@@ -284,6 +293,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       createOns: function(){
         this.userId = this.$.auth.user.uid;
 
+        /*
+
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.$.auth.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{
                         if(this.doAdded){
@@ -315,19 +326,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             downloadURL2 : datasUnReleve.downloadURL2,
                             downloadURL3 : datasUnReleve.downloadURL3
                           };
+                          console.log("key", oldChildSnapshot.key);
                           var index = this.checkReleve(unReleve);
                           if(index > -1){
                             this.splice("dataReleves", index, 1);
+                            console.log(this.dataReleves);
                             this.notifyPath("dataReleves");
                           }
                         }
-          });
+          });*/
 
           firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
-            if(this.doAdded){
-              this.push("allSpecies", snapshot.key);
-              this.notifyPath("allSpecies");
-            }
+            this.push("allSpecies", snapshot.key);
+            this.notifyPath("allSpecies");
           });
       },
 
@@ -347,10 +358,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       doOffs: function(){
-        this.splice("dataReleves", 0, this.dataReleves.length);
-        this.notifyPath("dataReleves");
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
-        this.userId = "";
+        //this.splice("dataReleves", 0, this.dataReleves.length);
+        //this.notifyPath("dataReleves");//Ou utiliser fonction de la query
+        //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        //this.userId = "";
       },
 
       _routePageChanged: function(page) {
@@ -377,7 +388,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       showDatas: function(length){
-        console.log(this.datas);
+        this.notifyPath("datasReleves");
+        console.log(this.dataReleves);
       },
 
       doAddedStatus: function(){
