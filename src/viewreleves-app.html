@@ -130,7 +130,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     <iron-icon icon="image:image" slot="item-icon"></iron-icon>
                     <paper-item-body two-lines>
                       <div>Image</div>
-                      <div secondary><img src="[[item.downloadURL1]]"></img></div>
+                      <div secondary><img src="[[item.downloadURL1]]" width="200px" height="200px"></img></div>
                     </paper-item-body>
                   </paper-icon-item>
 
@@ -138,7 +138,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     <iron-icon icon="image:image" slot="item-icon"></iron-icon>
                     <paper-item-body two-lines>
                       <div>Image</div>
-                      <div secondary><img src="[[item.downloadURL2]]"></img></div>
+                      <div secondary><img src="[[item.downloadURL2]]" width="200px" height="200px"></img></div>
                     </paper-item-body>
                   </paper-icon-item>
 
@@ -146,7 +146,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     <iron-icon icon="image:image" slot="item-icon"></iron-icon>
                     <paper-item-body two-lines>
                       <div>Image</div>
-                      <div secondary><img src="[[item.downloadURL3]]"></img></div>
+                      <div secondary><img src="[[item.downloadURL3]]" width="200px" height="200px"></img></div>
                     </paper-item-body>
                   </paper-icon-item>
 
@@ -505,6 +505,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       refreshDBKeyNames: function(idDelete){
+        console.log(idDelete, this.datas.length);
         for(var i = idDelete ; i < this.datas.length ; i++){
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
@@ -513,7 +514,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
         }
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+((this.datas.length)-1)).remove();
+        if(idDelete !== this.datas.length){
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+((this.datas.length)-1)).remove();
+        }
+
         this.shadowRoot.querySelector("#forReleves").render();
       },
 
