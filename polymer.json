@@ -3,7 +3,8 @@
   "shell": "src/iprelevenav-app.html",
   "fragments": [
     "src/viewauth-app.html",
-    "src/viewReleves-app.html",
+    "src/viewreleves-app.html",
+    "src/viewlistereleves-app.html",
     "src/viewgmap-app.html",
     "src/viewbotadex-app.html",
     "src/viewinfo-app.html",

@@ -13,8 +13,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-item.html">
-<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-group.html">
 <link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
 <link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
@@ -48,14 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         Vous ne pouvez choisir que jusqu'a 3 images
       </paper-alert-dialog>
 
-      <paper-alert-dialog
-        id="dialogDelete0"
-        title="Suppression relevé"
-        confirm-button="Oui"
-        dismiss-button="Non"
-        on-confirm="confirmDelete">
-        Voulez vous vraiment supprimmer ce relevé ?
-      </paper-alert-dialog>
+
 
       <paper-toast
         id="toastSuccess"
@@ -67,10 +58,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         text="Il faut sélectionner une espèce et remplir le code postal à 5 chiffres">
       </paper-toast>
 
-      <paper-toast
-        id="toastDelete"
-        text="Relevé supprimmé">
-      </paper-toast>
+
 
       <firebase-auth
         app-name="iPreleveFirebase"
@@ -87,6 +75,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <div>Latitude : [[latitude]]</div>
           <div>Longitude : [[longitude]]</div>
 
+<!--
           <br/>
           <h5>Liste des relevés actuels :</h5>
           <paper-collapse-group>
@@ -160,6 +149,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               </paper-collapse-item>
             </template>
           </paper-collapse-group>
+        -->
 
           <br/>
           <h5>Ajouter un relevé : (Sélectionner dans la liste si-dessous, mettre plus de 3 lettres pour préciser recherche)</h5>
@@ -195,7 +185,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </template>
 
         <template is="dom-if" if="[[!user]]">
-          <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+          <h4 style="color:red">Veuillez vous connecter afin d'ajouter des relevés</h4>
         </template>
   </template>
 
@@ -208,9 +198,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type:Array,
           value:[],
         },
-        eventBtn:{
-          type:Object
-        },
+
         doadded:{
           type:Boolean,
           observer:"doAddedStatus"
@@ -319,7 +307,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       datasChanged: function(length){
-        console.log(this.datas);
+        //console.log(this.datas);
       },
 
       geoValueChanged: function(latitude, longitude){
@@ -375,16 +363,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.$.dialogUpload0.open();
             this.shadowRoot.querySelector("#file-uploader").reset(); //Clean FileList
           }else{
-
-            //A changer, on veut mettre le 0 une seule fois si l'espèce est pas déja découverte sinon on met +1;
-            //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/discoveredSpecies/"+this.selectedSpecie).set(this.selectedSpecie);
-            //
-            console.log(this.discospecies);
-
-            //Début incrémentation nombre trouvés
             this.incrementNumberFound(this.selectedSpecie);
-
-            //Fin augment
 
             this.downloadURLs = [];
             for(var i = 0 ; i < this.filesInput.length ; i++){
@@ -530,7 +509,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       doAddedStatus: function(){
-        console.log("viewReleve, doadded", this.doadded);
+        //console.log("viewReleve, doadded", this.doadded);
       }
 
     });

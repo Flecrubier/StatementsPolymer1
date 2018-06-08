@@ -1,0 +1,201 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+
+<dom-module id="viewlistereleves-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px 20px;
+      }
+    </style>
+
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google">
+    </firebase-auth>
+
+    <paper-alert-dialog
+      id="dialogDelete0"
+      title="Suppression relevé"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmDelete">
+      Voulez vous vraiment supprimmer ce relevé ?
+    </paper-alert-dialog>
+
+    <paper-toast
+      id="toastDelete"
+      text="Relevé supprimmé">
+    </paper-toast>
+
+    <template is="dom-if" if="[[user]]">
+      <h5>Liste des relevés actuels :</h5>
+      <paper-collapse-group>
+        <template is="dom-repeat" items="[[releves]]" id="forReleves">
+          <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
+            <div role="listbox">
+
+              <paper-icon-item>
+                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Espèce</div>
+                  <div secondary>[[item.espece]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Longitude</div>
+                  <div secondary>[[showData(item.longitude)]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Latitude</div>
+                  <div secondary>[[showData(item.latitude)]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Code postal</div>
+                  <div secondary>[[showData(item.codepostal)]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Image</div>
+                  <div secondary><img src="[[item.downloadURL1]]" width="200px" height="200px"></img></div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Image</div>
+                  <div secondary><img src="[[item.downloadURL2]]" width="200px" height="200px"></img></div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Image</div>
+                  <div secondary><img src="[[item.downloadURL3]]" width="200px" height="200px"></img></div>
+                </paper-item-body>
+              </paper-icon-item>
+
+
+              <paper-icon-item>
+                <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
+                  <paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+              </paper-icon-item>
+
+            </div>
+          </paper-collapse-item>
+        </template>
+      </paper-collapse-group>
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'viewlistereleves-app',
+
+      properties:{
+        releves:{
+          type:Array,
+          value:[]
+        },
+        eventBtn:{
+          type:Object
+        },
+      },
+
+      getIndex: function(index){
+        return index+1;
+      },
+
+      deleteReleve: function(event){
+        this.eventBtn=event;
+        this.$.dialogDelete0.open();
+      },
+
+      confirmDelete: function(){
+        var chaineId = this.eventBtn.path[0].id;
+        var idReleve = chaineId.substring("deleteReleveBtn".length);
+        var idReleveInt = parseInt(idReleve);
+        var wantedKey = "n"+idReleveInt;
+        var wantedDownloadUrl1 = this.releves[idReleveInt].downloadURL1;
+        var wantedDownloadUrl2 = this.releves[idReleveInt].downloadURL2;
+        var wantedDownloadUrl3 = this.releves[idReleveInt].downloadURL3;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/"+wantedKey).remove(function(e){
+          this.$.toastDelete.open();
+          this.refreshDBKeyNames(idReleveInt);
+        }.bind(this));
+
+
+        if(wantedDownloadUrl1){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl1).delete();
+        }
+        if(wantedDownloadUrl2){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl2).delete();
+        }
+        if(wantedDownloadUrl3){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl3).delete();
+        }
+
+      },
+
+      refreshDBKeyNames: function(idDelete){
+        //console.log(idDelete, this.releves.length);
+        for(var i = idDelete ; i < this.releves.length ; i++){
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
+            //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
+        }
+        if(idDelete !== this.releves.length){
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+((this.releves.length)-1)).remove();
+        }
+
+        this.shadowRoot.querySelector("#forReleves").render();
+      },
+
+      showData: function(item){
+        if(item == false){
+          return "Non renseigné";
+        }else{
+          return item;
+        }
+      },
+    });
+  </script>
+</dom-module>

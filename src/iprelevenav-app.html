@@ -144,6 +144,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="viewauth" href="[[rootPath]]viewauth">Connexion/Déconnexion</a>
           <a name="viewreleves" href="[[rootPath]]viewreleves">Gestion relevés</a>
+          <a name="viewlistereleves" href="[[rootPath]]viewlistereleves">Liste de vos relevés</a>
           <a name="viewgmap" href="[[rootPath]]viewgmap">Cartes de vos relevés</a>
           <a name="viewbotadex" href="[[rootPath]]viewbotadex">Votre BotaDex</a>
           <a name="viewinfo" href="[[rootPath]]viewinfo">Informations</a>
@@ -168,6 +169,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             role="main">
             <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
             <viewreleves-app name="viewreleves" user="[[user]]" datas="{{dataReleves}}" allspecies="{{allSpecies}}" doadded="{{doAdded}}" discospecies="{{discos}}"></viewreleves-app>
+            <viewlistereleves-app name="viewlistereleves" user="[[user]]" releves="{{dataReleves}}"></viewlistereleves-app>
             <viewgmap-app name="viewgmap" user="[[user]]" datag="{{dataReleves}}" doadded="{{doAdded}}"></viewgmap-app>
             <viewbotadex-app name="viewbotadex" user="[[user]]" allspecies="{{allSpecies}}" doadded="{{doAdded}}" discos="{{discos}}"></viewbotadex-app>
             <viewinfo-app name="viewinfo"></viewinfo-app>
@@ -359,11 +361,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       showDatas: function(length){
         this.notifyPath("datasReleves");
-        console.log(this.dataReleves);
+        //console.log(this.dataReleves);
       },
 
       doAddedStatus: function(){
-        console.log("doAdded", this.doAdded);
+        //console.log("doAdded", this.doAdded);
       }
 
     });
