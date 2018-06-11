@@ -71,10 +71,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <template is="dom-if" if="[[user]]">
           <geo-location watch-pos latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
 
+
+<!--
           <h4>S'il n'y a pas de valeur pour la latitude/longitude veuillez attendre ou remplir le code postal</h4>
           <div>Latitude : [[latitude]]</div>
           <div>Longitude : [[longitude]]</div>
-
+-->
 <!--
           <br/>
           <h5>Liste des relevés actuels :</h5>
@@ -167,9 +169,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
 
           <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" allowed-pattern="[0-9]" disabled></paper-input>
-<!--
-          <paper-input style="width:20em" label="Images (3 max)" type="file" id="file-uploader" accept="image/*" multiple></paper-input>
--->
+
+          <template is="dom-if" if="[[!latitude]]">
+            <span style="color:red">Pas de valeurs trouvé par le GPS, remplir code postal</span>
+          </template>
+
+
+
           <div id="fileUp2">
             <paper-button raised id="fileUp1">
             <file-input id="file-uploader" accept="image/*" maxFiles="3"></file-input>
