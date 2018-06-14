@@ -14,6 +14,7 @@
         margin: 10px;
       }
     </style>
+
     <div class="botadexStyle">
       <div>
         <span style$="[[styleSpecie(prop1)]]" id="text">[[prop1]]</span>
@@ -21,7 +22,11 @@
       <div>
         <span id="number">Relevé [[getNumberTaken(prop1)]] fois</span>
       </div>
+      <br/>
+        <span>Niveau [[level]]</span>
+        <span id="lvlUp">Encore [[getNumberLeftForLvlUp(level)]] relevés pour niveau suivant</span>
     </div>
+
   </template>
 
   <script>
@@ -42,6 +47,10 @@
           type:Boolean,
           value:false,
           observer:"applyChanged"
+        },
+        level:{
+          type:Number,
+          value:1,
         }
       },
 
@@ -96,9 +105,38 @@
       },
 
       discoUpdate: function(length){
+        this.updateLvl();
         this.applyChanged();
-        this.$.number.innerText = "Relevé " + this.getNumberTaken(this.prop1) + " fois"
+        this.$.number.innerText = "Relevé " + this.getNumberTaken(this.prop1) + " fois";
+        this.$.lvlUp.innerText = "Encore " + this.getNumberLeftForLvlUp(this.level) + " relevés pour niveau suivant";
+      },
+
+      updateLvl: function(){
+        var numberOfStatements = this.getNumberTaken(this.prop1);
+        var level = 0;
+        var factor = 1;
+        while(numberOfStatements > 0){
+          numberOfStatements -= (5 + factor * 0.8);
+          level++;
+        }
+        if(level === 0){
+          level = 1;
+        }
+        this.level = level;
+        this.notifyPath("level");
+      },
+
+      getNumberLeftForLvlUp: function(level){
+        var numbreNeed = 0;
+        for(var i = 0 ; i < level ; i++){
+          numbreNeed += 5 +i*0.8;
+          //console.log("Level = ", (numbreNeed) );
+        }
+        numbreNeed = Math.ceil(numbreNeed);
+        return numbreNeed - this.getNumberTaken(this.prop1);
       }
+
+
 
     });
   </script>

@@ -153,7 +153,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-collapse-group>
         -->
 
-          <br/>
           <h5>Ajouter un relevé : (Sélectionner dans la liste si-dessous, mettre plus de 3 lettres pour préciser recherche)</h5>
           <paper-input style="width:20em" label="Rechercher espèce" value="{{specie}}" allowed-pattern="[a-zA-Z]" maxlength="30"></paper-input>
 
@@ -171,7 +170,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" allowed-pattern="[0-9]" disabled></paper-input>
 
           <template is="dom-if" if="[[!latitude]]">
-            <span style="color:red">Pas de valeurs trouvé par le GPS, remplir code postal</span>
+            <span style="color:red">Pas de position trouvée par le GPS, remplir code postal</span>
+            <br/>
           </template>
 
 
@@ -493,7 +493,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         for(var i = idDelete ; i < this.datas.length ; i++){
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
-            //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
           });
 
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
