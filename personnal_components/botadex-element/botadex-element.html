@@ -133,6 +133,11 @@
           //console.log("Level = ", (numbreNeed) );
         }
         numbreNeed = Math.ceil(numbreNeed);
+        if((numbreNeed - this.getNumberTaken(this.prop1)) === 0){
+          this.level++;
+          numbreNeed += 5 +i*0.8;
+          numbreNeed = Math.ceil(numbreNeed);
+        }
         return numbreNeed - this.getNumberTaken(this.prop1);
       }
 
